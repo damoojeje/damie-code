@@ -61,7 +61,7 @@ packages/vscode-ide-companion/*.vsix
 .qwen/
 .gemini/
 stage/
-mydev/tracking/sessions/
+mydev/
 
 # AI Artifacts (keep README, LICENSE, CONTRIBUTING, CHANGELOG)
 AUDIT_REPORT.md
