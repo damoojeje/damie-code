@@ -1,0 +1,2987 @@
+{
+  "project": "Damie Code",
+  "version": "1.0.0",
+  "created": "2026-02-08",
+  "quality_gates": [
+    "npm run typecheck",
+    "npm run lint",
+    "npm run test"
+  ],
+  "phases": [
+    {
+      "id": "phase-0",
+      "name": "Foundation & Setup",
+      "stories": [
+        {
+          "id": "US-001",
+          "title": "Rename CLI from qwen to damie",
+          "tasks": [
+            {
+              "id": "US-001-T01",
+              "title": "Update package.json bin field",
+              "description": "Change bin entry from 'qwen' to 'damie' in root package.json",
+              "file": "package.json",
+              "type": "modify",
+              "estimated_minutes": 5
+            },
+            {
+              "id": "US-001-T02",
+              "title": "Add CLI aliases",
+              "description": "Add 'damie-code' alias to bin field, ensure 'damie code' subcommand works",
+              "file": "package.json",
+              "type": "modify",
+              "estimated_minutes": 10
+            },
+            {
+              "id": "US-001-T03",
+              "title": "Rename internal qwen references in CLI package",
+              "description": "Find and replace 'qwen' with 'damie' in packages/cli/src/**/*.ts",
+              "file": "packages/cli/src/**/*.ts",
+              "type": "modify",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-001-T04",
+              "title": "Rename internal qwen references in core package",
+              "description": "Find and replace 'qwen' with 'damie' in packages/core/src/**/*.ts (excluding qwen OAuth which stays)",
+              "file": "packages/core/src/**/*.ts",
+              "type": "modify",
+              "estimated_minutes": 45
+            },
+            {
+              "id": "US-001-T05",
+              "title": "Update help text and branding",
+              "description": "Update all CLI help messages to show 'Damie Code' branding",
+              "file": "packages/cli/src/ui/**/*.ts",
+              "type": "modify",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-001-T06",
+              "title": "Update version display",
+              "description": "Ensure 'damie --version' shows 'Damie Code v1.0.0'",
+              "file": "packages/cli/src/commands/version.ts",
+              "type": "modify",
+              "estimated_minutes": 10
+            },
+            {
+              "id": "US-001-T07",
+              "title": "Update README and docs",
+              "description": "Update README.md and docs/ to reflect Damie branding",
+              "file": "README.md, docs/**/*.md",
+              "type": "modify",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-001-T08",
+              "title": "Run quality gates and fix issues",
+              "description": "Run npm run typecheck && npm run lint && npm run test, fix any failures",
+              "type": "verify",
+              "estimated_minutes": 30
+            }
+          ]
+        },
+        {
+          "id": "US-002",
+          "title": "First-run interactive setup wizard",
+          "tasks": [
+            {
+              "id": "US-002-T01",
+              "title": "Create setup wizard module",
+              "description": "Create packages/cli/src/setup/setupWizard.ts with wizard flow",
+              "file": "packages/cli/src/setup/setupWizard.ts",
+              "type": "create",
+              "estimated_minutes": 60
+            },
+            {
+              "id": "US-002-T02",
+              "title": "Implement first-run detection",
+              "description": "Check if ~/.damie/config.yaml exists, trigger wizard if not",
+              "file": "packages/cli/src/setup/firstRunDetector.ts",
+              "type": "create",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-002-T03",
+              "title": "Create provider selection prompt",
+              "description": "Interactive prompt for selecting API provider (DeepSeek, OpenAI, etc.)",
+              "file": "packages/cli/src/setup/providerPrompt.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-002-T04",
+              "title": "Create API key input prompt",
+              "description": "Masked input for API key with validation",
+              "file": "packages/cli/src/setup/apiKeyPrompt.ts",
+              "type": "create",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-002-T05",
+              "title": "Implement API key validation",
+              "description": "Make test API call to validate key before saving",
+              "file": "packages/cli/src/setup/apiValidator.ts",
+              "type": "create",
+              "estimated_minutes": 40
+            },
+            {
+              "id": "US-002-T06",
+              "title": "Create config file writer",
+              "description": "Write validated config to ~/.damie/config.yaml",
+              "file": "packages/cli/src/setup/configWriter.ts",
+              "type": "create",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-002-T07",
+              "title": "Display success message",
+              "description": "Show config path and next steps after setup",
+              "file": "packages/cli/src/setup/setupComplete.ts",
+              "type": "create",
+              "estimated_minutes": 15
+            },
+            {
+              "id": "US-002-T08",
+              "title": "Integrate wizard into CLI entry",
+              "description": "Call wizard from main CLI entry point when first run detected",
+              "file": "packages/cli/src/index.ts",
+              "type": "modify",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-002-T09",
+              "title": "Write setup wizard tests",
+              "description": "Unit tests for setup wizard components",
+              "file": "packages/cli/src/setup/*.test.ts",
+              "type": "create",
+              "estimated_minutes": 45
+            }
+          ]
+        },
+        {
+          "id": "US-003",
+          "title": "YAML configuration system",
+          "tasks": [
+            {
+              "id": "US-003-T01",
+              "title": "Define config schema",
+              "description": "Create TypeScript interface for config schema",
+              "file": "packages/core/src/config/damieConfig.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-003-T02",
+              "title": "Create config loader",
+              "description": "Load and parse ~/.damie/config.yaml with DAMIE_CONFIG env override",
+              "file": "packages/core/src/config/configLoader.ts",
+              "type": "create",
+              "estimated_minutes": 35
+            },
+            {
+              "id": "US-003-T03",
+              "title": "Implement CLI flag override",
+              "description": "CLI flags take precedence over config file values",
+              "file": "packages/cli/src/config/flagOverrides.ts",
+              "type": "create",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-003-T04",
+              "title": "Create 'damie config show' command",
+              "description": "Display current configuration in formatted output",
+              "file": "packages/cli/src/commands/config/show.ts",
+              "type": "create",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-003-T05",
+              "title": "Create 'damie config set' command",
+              "description": "Update config file from CLI",
+              "file": "packages/cli/src/commands/config/set.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-003-T06",
+              "title": "Create 'damie config path' command",
+              "description": "Display config file location",
+              "file": "packages/cli/src/commands/config/path.ts",
+              "type": "create",
+              "estimated_minutes": 10
+            },
+            {
+              "id": "US-003-T07",
+              "title": "Create default config template",
+              "description": "YAML template with comments for each option",
+              "file": "packages/core/src/config/defaultConfig.yaml",
+              "type": "create",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-003-T08",
+              "title": "Write config system tests",
+              "description": "Unit tests for config loading and commands",
+              "file": "packages/core/src/config/*.test.ts",
+              "type": "create",
+              "estimated_minutes": 40
+            }
+          ]
+        },
+        {
+          "id": "US-004",
+          "title": "Multi-API provider configuration",
+          "tasks": [
+            {
+              "id": "US-004-T01",
+              "title": "Extend config schema for providers",
+              "description": "Add providers array to config schema",
+              "file": "packages/core/src/config/damieConfig.ts",
+              "type": "modify",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-004-T02",
+              "title": "Create provider manager",
+              "description": "Manage multiple providers, get/set default",
+              "file": "packages/core/src/providers/providerManager.ts",
+              "type": "create",
+              "estimated_minutes": 40
+            },
+            {
+              "id": "US-004-T03",
+              "title": "Create 'damie provider list' command",
+              "description": "Show configured providers with status",
+              "file": "packages/cli/src/commands/provider/list.ts",
+              "type": "create",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-004-T04",
+              "title": "Create 'damie provider add' command",
+              "description": "Interactive provider addition",
+              "file": "packages/cli/src/commands/provider/add.ts",
+              "type": "create",
+              "estimated_minutes": 35
+            },
+            {
+              "id": "US-004-T05",
+              "title": "Create 'damie provider remove' command",
+              "description": "Remove provider from config",
+              "file": "packages/cli/src/commands/provider/remove.ts",
+              "type": "create",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-004-T06",
+              "title": "Create 'damie provider set-default' command",
+              "description": "Set default provider",
+              "file": "packages/cli/src/commands/provider/setDefault.ts",
+              "type": "create",
+              "estimated_minutes": 15
+            },
+            {
+              "id": "US-004-T07",
+              "title": "Implement secure credential storage",
+              "description": "Encrypt API keys or use system keychain",
+              "file": "packages/core/src/security/credentialStore.ts",
+              "type": "create",
+              "estimated_minutes": 60
+            },
+            {
+              "id": "US-004-T08",
+              "title": "Write provider management tests",
+              "description": "Unit tests for provider commands",
+              "file": "packages/cli/src/commands/provider/*.test.ts",
+              "type": "create",
+              "estimated_minutes": 35
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-1",
+      "name": "Multi-API Adapter System",
+      "stories": [
+        {
+          "id": "US-005",
+          "title": "Base adapter interface",
+          "tasks": [
+            {
+              "id": "US-005-T01",
+              "title": "Create adapters directory",
+              "description": "Create packages/core/src/adapters/ directory structure",
+              "file": "packages/core/src/adapters/",
+              "type": "create",
+              "estimated_minutes": 5
+            },
+            {
+              "id": "US-005-T02",
+              "title": "Define base adapter interface",
+              "description": "Create TypeScript interface with all required methods",
+              "file": "packages/core/src/adapters/baseAdapter.ts",
+              "type": "create",
+              "estimated_minutes": 40
+            },
+            {
+              "id": "US-005-T03",
+              "title": "Define adapter types",
+              "description": "Create types for requests, responses, errors",
+              "file": "packages/core/src/adapters/types.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-005-T04",
+              "title": "Create adapter error classes",
+              "description": "Custom error types for adapter failures",
+              "file": "packages/core/src/adapters/errors.ts",
+              "type": "create",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-005-T05",
+              "title": "Implement retry utility",
+              "description": "Exponential backoff retry logic",
+              "file": "packages/core/src/adapters/retry.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-005-T06",
+              "title": "Create streaming utilities",
+              "description": "Helpers for SSE and streaming responses",
+              "file": "packages/core/src/adapters/streaming.ts",
+              "type": "create",
+              "estimated_minutes": 35
+            },
+            {
+              "id": "US-005-T07",
+              "title": "Write base adapter tests",
+              "description": "Tests for interface compliance",
+              "file": "packages/core/src/adapters/baseAdapter.test.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            }
+          ]
+        },
+        {
+          "id": "US-006",
+          "title": "DeepSeek adapter implementation",
+          "tasks": [
+            {
+              "id": "US-006-T01",
+              "title": "Research DeepSeek API",
+              "description": "Document DeepSeek API format, endpoints, auth",
+              "file": "mydev/research/deepseek-api.md",
+              "type": "research",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-006-T02",
+              "title": "Create DeepSeek adapter class",
+              "description": "Implement BaseAdapter interface for DeepSeek",
+              "file": "packages/core/src/adapters/deepseekAdapter.ts",
+              "type": "create",
+              "estimated_minutes": 60
+            },
+            {
+              "id": "US-006-T03",
+              "title": "Implement generateContent method",
+              "description": "Non-streaming content generation",
+              "file": "packages/core/src/adapters/deepseekAdapter.ts",
+              "type": "modify",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-006-T04",
+              "title": "Implement streamContent method",
+              "description": "Streaming content generation with SSE",
+              "file": "packages/core/src/adapters/deepseekAdapter.ts",
+              "type": "modify",
+              "estimated_minutes": 40
+            },
+            {
+              "id": "US-006-T05",
+              "title": "Implement function calling",
+              "description": "Tool/function calling format for DeepSeek",
+              "file": "packages/core/src/adapters/deepseekAdapter.ts",
+              "type": "modify",
+              "estimated_minutes": 45
+            },
+            {
+              "id": "US-006-T06",
+              "title": "Add rate limiting handling",
+              "description": "Handle 429 errors with backoff",
+              "file": "packages/core/src/adapters/deepseekAdapter.ts",
+              "type": "modify",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-006-T07",
+              "title": "Write DeepSeek adapter tests",
+              "description": "Unit tests with mocked API responses",
+              "file": "packages/core/src/adapters/deepseekAdapter.test.ts",
+              "type": "create",
+              "estimated_minutes": 50
+            },
+            {
+              "id": "US-006-T08",
+              "title": "Integration test with real API",
+              "description": "Test with actual DeepSeek API (manual)",
+              "type": "verify",
+              "estimated_minutes": 20
+            }
+          ]
+        },
+        {
+          "id": "US-007",
+          "title": "OpenAI adapter implementation",
+          "tasks": [
+            {
+              "id": "US-007-T01",
+              "title": "Create OpenAI adapter class",
+              "description": "Implement BaseAdapter interface for OpenAI",
+              "file": "packages/core/src/adapters/openaiAdapter.ts",
+              "type": "create",
+              "estimated_minutes": 50
+            },
+            {
+              "id": "US-007-T02",
+              "title": "Implement chat completions",
+              "description": "OpenAI chat completions API integration",
+              "file": "packages/core/src/adapters/openaiAdapter.ts",
+              "type": "modify",
+              "estimated_minutes": 35
+            },
+            {
+              "id": "US-007-T03",
+              "title": "Implement streaming",
+              "description": "SSE streaming for OpenAI responses",
+              "file": "packages/core/src/adapters/openaiAdapter.ts",
+              "type": "modify",
+              "estimated_minutes": 35
+            },
+            {
+              "id": "US-007-T04",
+              "title": "Implement function calling",
+              "description": "OpenAI tools/functions format",
+              "file": "packages/core/src/adapters/openaiAdapter.ts",
+              "type": "modify",
+              "estimated_minutes": 40
+            },
+            {
+              "id": "US-007-T05",
+              "title": "Write OpenAI adapter tests",
+              "description": "Unit tests with mocked responses",
+              "file": "packages/core/src/adapters/openaiAdapter.test.ts",
+              "type": "create",
+              "estimated_minutes": 45
+            }
+          ]
+        },
+        {
+          "id": "US-008",
+          "title": "Anthropic adapter implementation",
+          "tasks": [
+            {
+              "id": "US-008-T01",
+              "title": "Create Anthropic adapter class",
+              "description": "Implement BaseAdapter interface for Anthropic",
+              "file": "packages/core/src/adapters/anthropicAdapter.ts",
+              "type": "create",
+              "estimated_minutes": 50
+            },
+            {
+              "id": "US-008-T02",
+              "title": "Implement messages API",
+              "description": "Anthropic messages format integration",
+              "file": "packages/core/src/adapters/anthropicAdapter.ts",
+              "type": "modify",
+              "estimated_minutes": 35
+            },
+            {
+              "id": "US-008-T03",
+              "title": "Implement streaming",
+              "description": "SSE streaming for Anthropic",
+              "file": "packages/core/src/adapters/anthropicAdapter.ts",
+              "type": "modify",
+              "estimated_minutes": 35
+            },
+            {
+              "id": "US-008-T04",
+              "title": "Implement tool use",
+              "description": "Anthropic tool use format",
+              "file": "packages/core/src/adapters/anthropicAdapter.ts",
+              "type": "modify",
+              "estimated_minutes": 40
+            },
+            {
+              "id": "US-008-T05",
+              "title": "Write Anthropic adapter tests",
+              "description": "Unit tests with mocked responses",
+              "file": "packages/core/src/adapters/anthropicAdapter.test.ts",
+              "type": "create",
+              "estimated_minutes": 45
+            }
+          ]
+        },
+        {
+          "id": "US-009",
+          "title": "OpenRouter adapter implementation",
+          "tasks": [
+            {
+              "id": "US-009-T01",
+              "title": "Create OpenRouter adapter class",
+              "description": "Implement BaseAdapter for OpenRouter",
+              "file": "packages/core/src/adapters/openrouterAdapter.ts",
+              "type": "create",
+              "estimated_minutes": 45
+            },
+            {
+              "id": "US-009-T02",
+              "title": "Implement model catalog fetching",
+              "description": "Dynamic model list from OpenRouter API",
+              "file": "packages/core/src/adapters/openrouterAdapter.ts",
+              "type": "modify",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-009-T03",
+              "title": "Add OpenRouter headers",
+              "description": "HTTP-Referer and X-Title headers",
+              "file": "packages/core/src/adapters/openrouterAdapter.ts",
+              "type": "modify",
+              "estimated_minutes": 15
+            },
+            {
+              "id": "US-009-T04",
+              "title": "Write OpenRouter adapter tests",
+              "description": "Unit tests with mocked responses",
+              "file": "packages/core/src/adapters/openrouterAdapter.test.ts",
+              "type": "create",
+              "estimated_minutes": 40
+            }
+          ]
+        },
+        {
+          "id": "US-010",
+          "title": "Ollama adapter implementation",
+          "tasks": [
+            {
+              "id": "US-010-T01",
+              "title": "Create Ollama adapter class",
+              "description": "Implement BaseAdapter for local Ollama",
+              "file": "packages/core/src/adapters/ollamaAdapter.ts",
+              "type": "create",
+              "estimated_minutes": 45
+            },
+            {
+              "id": "US-010-T02",
+              "title": "Implement model detection",
+              "description": "List available models via Ollama API",
+              "file": "packages/core/src/adapters/ollamaAdapter.ts",
+              "type": "modify",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-010-T03",
+              "title": "Handle connection errors",
+              "description": "Graceful error when Ollama not running",
+              "file": "packages/core/src/adapters/ollamaAdapter.ts",
+              "type": "modify",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-010-T04",
+              "title": "Write Ollama adapter tests",
+              "description": "Unit tests with mocked responses",
+              "file": "packages/core/src/adapters/ollamaAdapter.test.ts",
+              "type": "create",
+              "estimated_minutes": 35
+            }
+          ]
+        },
+        {
+          "id": "US-011",
+          "title": "Adapter factory and registry",
+          "tasks": [
+            {
+              "id": "US-011-T01",
+              "title": "Create adapter registry",
+              "description": "Registry pattern for adapter registration",
+              "file": "packages/core/src/adapters/adapterRegistry.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-011-T02",
+              "title": "Create adapter factory",
+              "description": "Factory to create adapters from config",
+              "file": "packages/core/src/adapters/adapterFactory.ts",
+              "type": "create",
+              "estimated_minutes": 35
+            },
+            {
+              "id": "US-011-T03",
+              "title": "Register all adapters",
+              "description": "Register DeepSeek, OpenAI, Anthropic, OpenRouter, Ollama",
+              "file": "packages/core/src/adapters/index.ts",
+              "type": "create",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-011-T04",
+              "title": "Implement singleton pattern",
+              "description": "Reuse adapter instances per provider",
+              "file": "packages/core/src/adapters/adapterFactory.ts",
+              "type": "modify",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-011-T05",
+              "title": "Write factory tests",
+              "description": "Unit tests for factory and registry",
+              "file": "packages/core/src/adapters/adapterFactory.test.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-2",
+      "name": "Model Router",
+      "stories": [
+        {
+          "id": "US-012",
+          "title": "Task analyzer",
+          "tasks": [
+            {
+              "id": "US-012-T01",
+              "title": "Create router directory",
+              "description": "Create packages/core/src/router/ structure",
+              "file": "packages/core/src/router/",
+              "type": "create",
+              "estimated_minutes": 5
+            },
+            {
+              "id": "US-012-T02",
+              "title": "Define task types enum",
+              "description": "Enum for coding, reasoning, creative, visual, general",
+              "file": "packages/core/src/router/types.ts",
+              "type": "create",
+              "estimated_minutes": 15
+            },
+            {
+              "id": "US-012-T03",
+              "title": "Implement task classifier",
+              "description": "Classify task by keywords and patterns",
+              "file": "packages/core/src/router/taskAnalyzer.ts",
+              "type": "create",
+              "estimated_minutes": 45
+            },
+            {
+              "id": "US-012-T04",
+              "title": "Implement complexity estimator",
+              "description": "Score task complexity 1-10",
+              "file": "packages/core/src/router/taskAnalyzer.ts",
+              "type": "modify",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-012-T05",
+              "title": "Implement token estimator",
+              "description": "Estimate required tokens for task",
+              "file": "packages/core/src/router/taskAnalyzer.ts",
+              "type": "modify",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-012-T06",
+              "title": "Write task analyzer tests",
+              "description": "Tests with various task descriptions",
+              "file": "packages/core/src/router/taskAnalyzer.test.ts",
+              "type": "create",
+              "estimated_minutes": 40
+            }
+          ]
+        },
+        {
+          "id": "US-013",
+          "title": "Model router implementation",
+          "tasks": [
+            {
+              "id": "US-013-T01",
+              "title": "Create model router class",
+              "description": "Main router implementation",
+              "file": "packages/core/src/router/modelRouter.ts",
+              "type": "create",
+              "estimated_minutes": 50
+            },
+            {
+              "id": "US-013-T02",
+              "title": "Implement routing logic",
+              "description": "Route based on task type to provider",
+              "file": "packages/core/src/router/modelRouter.ts",
+              "type": "modify",
+              "estimated_minutes": 40
+            },
+            {
+              "id": "US-013-T03",
+              "title": "Implement fallback mechanism",
+              "description": "Fallback to default if routing fails",
+              "file": "packages/core/src/router/modelRouter.ts",
+              "type": "modify",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-013-T04",
+              "title": "Add routing logging",
+              "description": "Log routing decisions for transparency",
+              "file": "packages/core/src/router/modelRouter.ts",
+              "type": "modify",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-013-T05",
+              "title": "Create 'damie route' command",
+              "description": "Show routing decision without executing",
+              "file": "packages/cli/src/commands/route.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-013-T06",
+              "title": "Write router tests",
+              "description": "Unit tests for routing logic",
+              "file": "packages/core/src/router/modelRouter.test.ts",
+              "type": "create",
+              "estimated_minutes": 40
+            }
+          ]
+        },
+        {
+          "id": "US-014",
+          "title": "Routing configuration",
+          "tasks": [
+            {
+              "id": "US-014-T01",
+              "title": "Add routing to config schema",
+              "description": "Add routing rules section to config",
+              "file": "packages/core/src/config/damieConfig.ts",
+              "type": "modify",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-014-T02",
+              "title": "Implement config-based routing",
+              "description": "Use config rules for routing decisions",
+              "file": "packages/core/src/router/modelRouter.ts",
+              "type": "modify",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-014-T03",
+              "title": "Create routing config commands",
+              "description": "damie config routing show/set commands",
+              "file": "packages/cli/src/commands/config/routing.ts",
+              "type": "create",
+              "estimated_minutes": 35
+            },
+            {
+              "id": "US-014-T04",
+              "title": "Validate routing config",
+              "description": "Validate rules on config load",
+              "file": "packages/core/src/router/routingValidator.ts",
+              "type": "create",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-014-T05",
+              "title": "Write routing config tests",
+              "description": "Tests for config-based routing",
+              "file": "packages/core/src/router/routingConfig.test.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-3",
+      "name": "Supervisor Loop (Ralph Loop)",
+      "stories": [
+        {
+          "id": "US-015",
+          "title": "Supervisor state machine",
+          "tasks": [
+            {
+              "id": "US-015-T01",
+              "title": "Create supervisor directory",
+              "description": "Create packages/core/src/supervisor/ directory structure",
+              "file": "packages/core/src/supervisor/",
+              "type": "create",
+              "estimated_minutes": 5
+            },
+            {
+              "id": "US-015-T02",
+              "title": "Define state enum and types",
+              "description": "Define states: IDLE, PLAN, EXECUTE, VERIFY, ITERATE, COMPLETE, FAILED, PAUSED",
+              "file": "packages/core/src/supervisor/types.ts",
+              "type": "create",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-015-T03",
+              "title": "Implement state machine class",
+              "description": "State machine with transition validation and events",
+              "file": "packages/core/src/supervisor/stateMachine.ts",
+              "type": "create",
+              "estimated_minutes": 50
+            },
+            {
+              "id": "US-015-T04",
+              "title": "Define valid state transitions",
+              "description": "Map of allowed transitions between states",
+              "file": "packages/core/src/supervisor/transitions.ts",
+              "type": "create",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-015-T05",
+              "title": "Implement state persistence",
+              "description": "Save and restore state for recovery",
+              "file": "packages/core/src/supervisor/statePersistence.ts",
+              "type": "create",
+              "estimated_minutes": 35
+            },
+            {
+              "id": "US-015-T06",
+              "title": "Add timeout handling",
+              "description": "Configurable timeout per state with auto-transition",
+              "file": "packages/core/src/supervisor/stateMachine.ts",
+              "type": "modify",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-015-T07",
+              "title": "Write state machine tests",
+              "description": "Unit tests for all state transitions",
+              "file": "packages/core/src/supervisor/stateMachine.test.ts",
+              "type": "create",
+              "estimated_minutes": 40
+            }
+          ]
+        },
+        {
+          "id": "US-016",
+          "title": "Supervisor loop implementation",
+          "tasks": [
+            {
+              "id": "US-016-T01",
+              "title": "Create supervisor loop class",
+              "description": "Main orchestration class using state machine",
+              "file": "packages/core/src/supervisor/supervisorLoop.ts",
+              "type": "create",
+              "estimated_minutes": 60
+            },
+            {
+              "id": "US-016-T02",
+              "title": "Implement PLAN phase handler",
+              "description": "Generate implementation plan in PLAN state",
+              "file": "packages/core/src/supervisor/handlers/planHandler.ts",
+              "type": "create",
+              "estimated_minutes": 45
+            },
+            {
+              "id": "US-016-T03",
+              "title": "Implement EXECUTE phase handler",
+              "description": "Execute plan steps in EXECUTE state",
+              "file": "packages/core/src/supervisor/handlers/executeHandler.ts",
+              "type": "create",
+              "estimated_minutes": 50
+            },
+            {
+              "id": "US-016-T04",
+              "title": "Implement VERIFY phase handler",
+              "description": "Validate results in VERIFY state",
+              "file": "packages/core/src/supervisor/handlers/verifyHandler.ts",
+              "type": "create",
+              "estimated_minutes": 45
+            },
+            {
+              "id": "US-016-T05",
+              "title": "Implement ITERATE logic",
+              "description": "Loop back from VERIFY to EXECUTE when needed",
+              "file": "packages/core/src/supervisor/supervisorLoop.ts",
+              "type": "modify",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-016-T06",
+              "title": "Add max iteration limit",
+              "description": "Configurable max iterations (default: 3)",
+              "file": "packages/core/src/supervisor/supervisorLoop.ts",
+              "type": "modify",
+              "estimated_minutes": 15
+            },
+            {
+              "id": "US-016-T07",
+              "title": "Implement progress reporting",
+              "description": "Emit progress events during execution",
+              "file": "packages/core/src/supervisor/progressReporter.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-016-T08",
+              "title": "Implement pause/resume",
+              "description": "Pause and resume capability with state save",
+              "file": "packages/core/src/supervisor/supervisorLoop.ts",
+              "type": "modify",
+              "estimated_minutes": 35
+            },
+            {
+              "id": "US-016-T09",
+              "title": "Write supervisor loop tests",
+              "description": "Integration tests for full loop execution",
+              "file": "packages/core/src/supervisor/supervisorLoop.test.ts",
+              "type": "create",
+              "estimated_minutes": 50
+            }
+          ]
+        },
+        {
+          "id": "US-017",
+          "title": "Decision engine",
+          "tasks": [
+            {
+              "id": "US-017-T01",
+              "title": "Create decision engine class",
+              "description": "Decision logic for state transitions",
+              "file": "packages/core/src/supervisor/decisionEngine.ts",
+              "type": "create",
+              "estimated_minutes": 45
+            },
+            {
+              "id": "US-017-T02",
+              "title": "Implement success/failure evaluation",
+              "description": "Evaluate phase outcome from results",
+              "file": "packages/core/src/supervisor/decisionEngine.ts",
+              "type": "modify",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-017-T03",
+              "title": "Implement retry decision logic",
+              "description": "Determine if retry is appropriate",
+              "file": "packages/core/src/supervisor/decisionEngine.ts",
+              "type": "modify",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-017-T04",
+              "title": "Handle partial successes",
+              "description": "Logic for mixed success/failure results",
+              "file": "packages/core/src/supervisor/decisionEngine.ts",
+              "type": "modify",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-017-T05",
+              "title": "Add configurable thresholds",
+              "description": "Config for success/failure thresholds",
+              "file": "packages/core/src/supervisor/decisionConfig.ts",
+              "type": "create",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-017-T06",
+              "title": "Implement decision logging",
+              "description": "Log all decisions for debugging",
+              "file": "packages/core/src/supervisor/decisionEngine.ts",
+              "type": "modify",
+              "estimated_minutes": 15
+            },
+            {
+              "id": "US-017-T07",
+              "title": "Write decision engine tests",
+              "description": "Tests for various decision scenarios",
+              "file": "packages/core/src/supervisor/decisionEngine.test.ts",
+              "type": "create",
+              "estimated_minutes": 40
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-4",
+      "name": "Planner",
+      "stories": [
+        {
+          "id": "US-018",
+          "title": "Task decomposition",
+          "tasks": [
+            {
+              "id": "US-018-T01",
+              "title": "Create planner directory",
+              "description": "Create packages/core/src/planner/ directory structure",
+              "file": "packages/core/src/planner/",
+              "type": "create",
+              "estimated_minutes": 5
+            },
+            {
+              "id": "US-018-T02",
+              "title": "Define subtask types",
+              "description": "TypeScript types for subtasks and plans",
+              "file": "packages/core/src/planner/types.ts",
+              "type": "create",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-018-T03",
+              "title": "Create task planner class",
+              "description": "Main planner that decomposes tasks",
+              "file": "packages/core/src/planner/taskPlanner.ts",
+              "type": "create",
+              "estimated_minutes": 55
+            },
+            {
+              "id": "US-018-T04",
+              "title": "Implement LLM-based decomposition",
+              "description": "Use LLM to break task into subtasks",
+              "file": "packages/core/src/planner/taskPlanner.ts",
+              "type": "modify",
+              "estimated_minutes": 40
+            },
+            {
+              "id": "US-018-T05",
+              "title": "Add effort estimation",
+              "description": "Estimate effort per subtask",
+              "file": "packages/core/src/planner/effortEstimator.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-018-T06",
+              "title": "Generate dependency graph",
+              "description": "Build graph of subtask dependencies",
+              "file": "packages/core/src/planner/dependencyGraph.ts",
+              "type": "create",
+              "estimated_minutes": 35
+            },
+            {
+              "id": "US-018-T07",
+              "title": "Validate plan completeness",
+              "description": "Check plan covers all aspects of task",
+              "file": "packages/core/src/planner/planValidator.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-018-T08",
+              "title": "Write planner tests",
+              "description": "Unit tests for task decomposition",
+              "file": "packages/core/src/planner/taskPlanner.test.ts",
+              "type": "create",
+              "estimated_minutes": 45
+            }
+          ]
+        },
+        {
+          "id": "US-019",
+          "title": "Plan execution order",
+          "tasks": [
+            {
+              "id": "US-019-T01",
+              "title": "Create dependency resolver",
+              "description": "Resolve execution order from dependencies",
+              "file": "packages/core/src/planner/dependencyResolver.ts",
+              "type": "create",
+              "estimated_minutes": 40
+            },
+            {
+              "id": "US-019-T02",
+              "title": "Implement topological sort",
+              "description": "Sort subtasks by dependencies",
+              "file": "packages/core/src/planner/dependencyResolver.ts",
+              "type": "modify",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-019-T03",
+              "title": "Detect circular dependencies",
+              "description": "Detect and report cycles",
+              "file": "packages/core/src/planner/dependencyResolver.ts",
+              "type": "modify",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-019-T04",
+              "title": "Support parallel execution",
+              "description": "Identify parallelizable subtasks",
+              "file": "packages/core/src/planner/parallelExecutor.ts",
+              "type": "create",
+              "estimated_minutes": 35
+            },
+            {
+              "id": "US-019-T05",
+              "title": "Handle failed dependencies",
+              "description": "Skip dependents when dependency fails",
+              "file": "packages/core/src/planner/dependencyResolver.ts",
+              "type": "modify",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-019-T06",
+              "title": "Write resolver tests",
+              "description": "Tests for dependency resolution",
+              "file": "packages/core/src/planner/dependencyResolver.test.ts",
+              "type": "create",
+              "estimated_minutes": 40
+            }
+          ]
+        },
+        {
+          "id": "US-020",
+          "title": "Plan display and approval",
+          "tasks": [
+            {
+              "id": "US-020-T01",
+              "title": "Create plan display formatter",
+              "description": "Format plan for CLI display",
+              "file": "packages/cli/src/ui/planDisplay.ts",
+              "type": "create",
+              "estimated_minutes": 35
+            },
+            {
+              "id": "US-020-T02",
+              "title": "Create 'damie plan' command",
+              "description": "Command to show plan without executing",
+              "file": "packages/cli/src/commands/plan.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-020-T03",
+              "title": "Display effort estimates",
+              "description": "Show time estimates for subtasks",
+              "file": "packages/cli/src/ui/planDisplay.ts",
+              "type": "modify",
+              "estimated_minutes": 15
+            },
+            {
+              "id": "US-020-T04",
+              "title": "Display dependency graph",
+              "description": "Text-based graph visualization",
+              "file": "packages/cli/src/ui/dependencyGraphDisplay.ts",
+              "type": "create",
+              "estimated_minutes": 40
+            },
+            {
+              "id": "US-020-T05",
+              "title": "Implement approval prompt",
+              "description": "Prompt user to approve plan",
+              "file": "packages/cli/src/ui/approvalPrompt.ts",
+              "type": "create",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-020-T06",
+              "title": "Add --auto-approve flag",
+              "description": "Skip approval with flag",
+              "file": "packages/cli/src/commands/plan.ts",
+              "type": "modify",
+              "estimated_minutes": 10
+            },
+            {
+              "id": "US-020-T07",
+              "title": "Add --save flag",
+              "description": "Save plan to file",
+              "file": "packages/cli/src/commands/plan.ts",
+              "type": "modify",
+              "estimated_minutes": 15
+            },
+            {
+              "id": "US-020-T08",
+              "title": "Write plan display tests",
+              "description": "Tests for plan commands",
+              "file": "packages/cli/src/commands/plan.test.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-5",
+      "name": "Verifier",
+      "stories": [
+        {
+          "id": "US-021",
+          "title": "Result verification",
+          "tasks": [
+            {
+              "id": "US-021-T01",
+              "title": "Create verifier directory",
+              "description": "Create packages/core/src/verifier/ directory structure",
+              "file": "packages/core/src/verifier/",
+              "type": "create",
+              "estimated_minutes": 5
+            },
+            {
+              "id": "US-021-T02",
+              "title": "Define verification types",
+              "description": "Types for verification results and criteria",
+              "file": "packages/core/src/verifier/types.ts",
+              "type": "create",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-021-T03",
+              "title": "Create result verifier class",
+              "description": "Main verification logic",
+              "file": "packages/core/src/verifier/resultVerifier.ts",
+              "type": "create",
+              "estimated_minutes": 50
+            },
+            {
+              "id": "US-021-T04",
+              "title": "Implement criteria verification",
+              "description": "Verify against acceptance criteria",
+              "file": "packages/core/src/verifier/criteriaVerifier.ts",
+              "type": "create",
+              "estimated_minutes": 40
+            },
+            {
+              "id": "US-021-T05",
+              "title": "Implement syntax checking",
+              "description": "Check generated code for syntax errors",
+              "file": "packages/core/src/verifier/syntaxChecker.ts",
+              "type": "create",
+              "estimated_minutes": 35
+            },
+            {
+              "id": "US-021-T06",
+              "title": "Verify file changes",
+              "description": "Validate file modifications are correct",
+              "file": "packages/core/src/verifier/fileChangeVerifier.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-021-T07",
+              "title": "Generate verification report",
+              "description": "Structured report of verification results",
+              "file": "packages/core/src/verifier/reportGenerator.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-021-T08",
+              "title": "Write verifier tests",
+              "description": "Unit tests for verification logic",
+              "file": "packages/core/src/verifier/resultVerifier.test.ts",
+              "type": "create",
+              "estimated_minutes": 45
+            }
+          ]
+        },
+        {
+          "id": "US-022",
+          "title": "Test runner integration",
+          "tasks": [
+            {
+              "id": "US-022-T01",
+              "title": "Create test runner class",
+              "description": "Runner for automated tests",
+              "file": "packages/core/src/verifier/testRunner.ts",
+              "type": "create",
+              "estimated_minutes": 45
+            },
+            {
+              "id": "US-022-T02",
+              "title": "Detect test framework",
+              "description": "Auto-detect Jest, Vitest, Mocha, pytest",
+              "file": "packages/core/src/verifier/frameworkDetector.ts",
+              "type": "create",
+              "estimated_minutes": 35
+            },
+            {
+              "id": "US-022-T03",
+              "title": "Run tests for changed files",
+              "description": "Find and run relevant tests",
+              "file": "packages/core/src/verifier/testRunner.ts",
+              "type": "modify",
+              "estimated_minutes": 40
+            },
+            {
+              "id": "US-022-T04",
+              "title": "Parse test results",
+              "description": "Parse output from various test runners",
+              "file": "packages/core/src/verifier/testResultParser.ts",
+              "type": "create",
+              "estimated_minutes": 45
+            },
+            {
+              "id": "US-022-T05",
+              "title": "Report test summary",
+              "description": "Generate pass/fail summary",
+              "file": "packages/core/src/verifier/testRunner.ts",
+              "type": "modify",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-022-T06",
+              "title": "Add test timeout config",
+              "description": "Configurable test execution timeout",
+              "file": "packages/core/src/verifier/testRunner.ts",
+              "type": "modify",
+              "estimated_minutes": 15
+            },
+            {
+              "id": "US-022-T07",
+              "title": "Write test runner tests",
+              "description": "Tests for test runner integration",
+              "file": "packages/core/src/verifier/testRunner.test.ts",
+              "type": "create",
+              "estimated_minutes": 40
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-6",
+      "name": "Context Manager",
+      "stories": [
+        {
+          "id": "US-023",
+          "title": "Context window management",
+          "tasks": [
+            {
+              "id": "US-023-T01",
+              "title": "Create context directory",
+              "description": "Create packages/core/src/context/ directory structure",
+              "file": "packages/core/src/context/",
+              "type": "create",
+              "estimated_minutes": 5
+            },
+            {
+              "id": "US-023-T02",
+              "title": "Define context types",
+              "description": "Types for context items and windows",
+              "file": "packages/core/src/context/types.ts",
+              "type": "create",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-023-T03",
+              "title": "Create context manager class",
+              "description": "Main context management logic",
+              "file": "packages/core/src/context/contextManager.ts",
+              "type": "create",
+              "estimated_minutes": 55
+            },
+            {
+              "id": "US-023-T04",
+              "title": "Implement size tracking",
+              "description": "Track current context size in tokens",
+              "file": "packages/core/src/context/contextManager.ts",
+              "type": "modify",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-023-T05",
+              "title": "Implement context prioritization",
+              "description": "Prioritize relevant context items",
+              "file": "packages/core/src/context/contextPrioritizer.ts",
+              "type": "create",
+              "estimated_minutes": 40
+            },
+            {
+              "id": "US-023-T06",
+              "title": "Implement context compression",
+              "description": "Summarize old context to save tokens",
+              "file": "packages/core/src/context/contextCompressor.ts",
+              "type": "create",
+              "estimated_minutes": 45
+            },
+            {
+              "id": "US-023-T07",
+              "title": "Support model-specific limits",
+              "description": "Different limits per model",
+              "file": "packages/core/src/context/contextManager.ts",
+              "type": "modify",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-023-T08",
+              "title": "Implement context persistence",
+              "description": "Save context across sessions",
+              "file": "packages/core/src/context/contextPersistence.ts",
+              "type": "create",
+              "estimated_minutes": 35
+            },
+            {
+              "id": "US-023-T09",
+              "title": "Write context manager tests",
+              "description": "Unit tests for context management",
+              "file": "packages/core/src/context/contextManager.test.ts",
+              "type": "create",
+              "estimated_minutes": 45
+            }
+          ]
+        },
+        {
+          "id": "US-024",
+          "title": "Relevance scoring",
+          "tasks": [
+            {
+              "id": "US-024-T01",
+              "title": "Create relevance scorer class",
+              "description": "Score context items by relevance",
+              "file": "packages/core/src/context/relevanceScorer.ts",
+              "type": "create",
+              "estimated_minutes": 45
+            },
+            {
+              "id": "US-024-T02",
+              "title": "Implement recency scoring",
+              "description": "Score based on time since last use",
+              "file": "packages/core/src/context/relevanceScorer.ts",
+              "type": "modify",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-024-T03",
+              "title": "Implement proximity scoring",
+              "description": "Score based on file path proximity",
+              "file": "packages/core/src/context/relevanceScorer.ts",
+              "type": "modify",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-024-T04",
+              "title": "Implement semantic scoring",
+              "description": "Score based on content similarity",
+              "file": "packages/core/src/context/relevanceScorer.ts",
+              "type": "modify",
+              "estimated_minutes": 35
+            },
+            {
+              "id": "US-024-T05",
+              "title": "Add configurable weights",
+              "description": "Config for scoring weight factors",
+              "file": "packages/core/src/context/scoringConfig.ts",
+              "type": "create",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-024-T06",
+              "title": "Write scorer tests",
+              "description": "Tests for relevance scoring",
+              "file": "packages/core/src/context/relevanceScorer.test.ts",
+              "type": "create",
+              "estimated_minutes": 35
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-7",
+      "name": "File Scanner",
+      "stories": [
+        {
+          "id": "US-025",
+          "title": "Project structure analysis",
+          "tasks": [
+            {
+              "id": "US-025-T01",
+              "title": "Create scanner directory",
+              "description": "Create packages/core/src/scanner/ directory structure",
+              "file": "packages/core/src/scanner/",
+              "type": "create",
+              "estimated_minutes": 5
+            },
+            {
+              "id": "US-025-T02",
+              "title": "Define scanner types",
+              "description": "Types for scan results and file info",
+              "file": "packages/core/src/scanner/types.ts",
+              "type": "create",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-025-T03",
+              "title": "Create file scanner class",
+              "description": "Recursive directory scanner",
+              "file": "packages/core/src/scanner/fileScanner.ts",
+              "type": "create",
+              "estimated_minutes": 45
+            },
+            {
+              "id": "US-025-T04",
+              "title": "Implement gitignore support",
+              "description": "Respect .gitignore patterns",
+              "file": "packages/core/src/scanner/ignoreParser.ts",
+              "type": "create",
+              "estimated_minutes": 35
+            },
+            {
+              "id": "US-025-T05",
+              "title": "Implement damieignore support",
+              "description": "Custom .damieignore patterns",
+              "file": "packages/core/src/scanner/ignoreParser.ts",
+              "type": "modify",
+              "estimated_minutes": 15
+            },
+            {
+              "id": "US-025-T06",
+              "title": "Generate file tree",
+              "description": "Tree representation of project",
+              "file": "packages/core/src/scanner/treeGenerator.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-025-T07",
+              "title": "Detect project type",
+              "description": "Identify Node.js, Python, Go, etc.",
+              "file": "packages/core/src/scanner/projectDetector.ts",
+              "type": "create",
+              "estimated_minutes": 35
+            },
+            {
+              "id": "US-025-T08",
+              "title": "Implement scan caching",
+              "description": "Cache results for performance",
+              "file": "packages/core/src/scanner/scanCache.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-025-T09",
+              "title": "Write scanner tests",
+              "description": "Unit tests for file scanning",
+              "file": "packages/core/src/scanner/fileScanner.test.ts",
+              "type": "create",
+              "estimated_minutes": 40
+            }
+          ]
+        },
+        {
+          "id": "US-026",
+          "title": "File type detection",
+          "tasks": [
+            {
+              "id": "US-026-T01",
+              "title": "Create file type detector",
+              "description": "Detect language and file type",
+              "file": "packages/core/src/scanner/fileTypeDetector.ts",
+              "type": "create",
+              "estimated_minutes": 35
+            },
+            {
+              "id": "US-026-T02",
+              "title": "Detect by extension",
+              "description": "Map extensions to languages",
+              "file": "packages/core/src/scanner/fileTypeDetector.ts",
+              "type": "modify",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-026-T03",
+              "title": "Detect by content",
+              "description": "Detect from shebang or content",
+              "file": "packages/core/src/scanner/fileTypeDetector.ts",
+              "type": "modify",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-026-T04",
+              "title": "Identify config files",
+              "description": "Recognize package.json, tsconfig, etc.",
+              "file": "packages/core/src/scanner/fileTypeDetector.ts",
+              "type": "modify",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-026-T05",
+              "title": "Identify test files",
+              "description": "Recognize *.test.ts, *_test.py, etc.",
+              "file": "packages/core/src/scanner/fileTypeDetector.ts",
+              "type": "modify",
+              "estimated_minutes": 15
+            },
+            {
+              "id": "US-026-T06",
+              "title": "Identify build artifacts",
+              "description": "Exclude node_modules, dist, etc.",
+              "file": "packages/core/src/scanner/fileTypeDetector.ts",
+              "type": "modify",
+              "estimated_minutes": 15
+            },
+            {
+              "id": "US-026-T07",
+              "title": "Write detection tests",
+              "description": "Tests for file type detection",
+              "file": "packages/core/src/scanner/fileTypeDetector.test.ts",
+              "type": "create",
+              "estimated_minutes": 35
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-8",
+      "name": "Diff Engine",
+      "stories": [
+        {
+          "id": "US-027",
+          "title": "Diff generation",
+          "tasks": [
+            {
+              "id": "US-027-T01",
+              "title": "Create diff directory",
+              "description": "Create packages/core/src/diff/ directory structure",
+              "file": "packages/core/src/diff/",
+              "type": "create",
+              "estimated_minutes": 5
+            },
+            {
+              "id": "US-027-T02",
+              "title": "Define diff types",
+              "description": "Types for diffs, hunks, changes",
+              "file": "packages/core/src/diff/types.ts",
+              "type": "create",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-027-T03",
+              "title": "Create diff engine class",
+              "description": "Generate diffs between files",
+              "file": "packages/core/src/diff/diffEngine.ts",
+              "type": "create",
+              "estimated_minutes": 45
+            },
+            {
+              "id": "US-027-T04",
+              "title": "Generate unified diff format",
+              "description": "Standard unified diff output",
+              "file": "packages/core/src/diff/diffEngine.ts",
+              "type": "modify",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-027-T05",
+              "title": "Support multi-file diffs",
+              "description": "Handle multiple file changes",
+              "file": "packages/core/src/diff/multiFileDiff.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-027-T06",
+              "title": "Add syntax highlighting",
+              "description": "Colored diff output",
+              "file": "packages/cli/src/ui/diffHighlighter.ts",
+              "type": "create",
+              "estimated_minutes": 35
+            },
+            {
+              "id": "US-027-T07",
+              "title": "Display line numbers",
+              "description": "Show line numbers in diff",
+              "file": "packages/cli/src/ui/diffHighlighter.ts",
+              "type": "modify",
+              "estimated_minutes": 15
+            },
+            {
+              "id": "US-027-T08",
+              "title": "Write diff tests",
+              "description": "Tests for diff generation",
+              "file": "packages/core/src/diff/diffEngine.test.ts",
+              "type": "create",
+              "estimated_minutes": 40
+            }
+          ]
+        },
+        {
+          "id": "US-028",
+          "title": "Patch application",
+          "tasks": [
+            {
+              "id": "US-028-T01",
+              "title": "Create patch applier class",
+              "description": "Apply patches to files",
+              "file": "packages/core/src/diff/patchApplier.ts",
+              "type": "create",
+              "estimated_minutes": 45
+            },
+            {
+              "id": "US-028-T02",
+              "title": "Implement atomic application",
+              "description": "Apply all or nothing",
+              "file": "packages/core/src/diff/patchApplier.ts",
+              "type": "modify",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-028-T03",
+              "title": "Detect conflicts",
+              "description": "Detect conflicts before applying",
+              "file": "packages/core/src/diff/conflictDetector.ts",
+              "type": "create",
+              "estimated_minutes": 35
+            },
+            {
+              "id": "US-028-T04",
+              "title": "Create backup system",
+              "description": "Backup files before patching",
+              "file": "packages/core/src/diff/backupManager.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-028-T05",
+              "title": "Implement rollback",
+              "description": "Rollback on failure",
+              "file": "packages/core/src/diff/patchApplier.ts",
+              "type": "modify",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-028-T06",
+              "title": "Create 'damie patch' command",
+              "description": "CLI command to apply patches",
+              "file": "packages/cli/src/commands/patch.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-028-T07",
+              "title": "Write patch tests",
+              "description": "Tests for patch application",
+              "file": "packages/core/src/diff/patchApplier.test.ts",
+              "type": "create",
+              "estimated_minutes": 40
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-9",
+      "name": "Memory System",
+      "stories": [
+        {
+          "id": "US-029",
+          "title": "Conversation memory",
+          "tasks": [
+            {
+              "id": "US-029-T01",
+              "title": "Create memory directory",
+              "description": "Create packages/core/src/memory/ directory structure",
+              "file": "packages/core/src/memory/",
+              "type": "create",
+              "estimated_minutes": 5
+            },
+            {
+              "id": "US-029-T02",
+              "title": "Define memory types",
+              "description": "Types for memory entries and stores",
+              "file": "packages/core/src/memory/types.ts",
+              "type": "create",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-029-T03",
+              "title": "Create memory store class",
+              "description": "Main memory storage system",
+              "file": "packages/core/src/memory/memoryStore.ts",
+              "type": "create",
+              "estimated_minutes": 50
+            },
+            {
+              "id": "US-029-T04",
+              "title": "Store conversation history",
+              "description": "Save messages and responses",
+              "file": "packages/core/src/memory/memoryStore.ts",
+              "type": "modify",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-029-T05",
+              "title": "Implement project isolation",
+              "description": "Separate memory per project",
+              "file": "packages/core/src/memory/projectMemory.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-029-T06",
+              "title": "Add memory size limits",
+              "description": "Configurable memory limits",
+              "file": "packages/core/src/memory/memoryStore.ts",
+              "type": "modify",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-029-T07",
+              "title": "Implement memory compression",
+              "description": "Compress old conversations",
+              "file": "packages/core/src/memory/memoryCompressor.ts",
+              "type": "create",
+              "estimated_minutes": 40
+            },
+            {
+              "id": "US-029-T08",
+              "title": "Create 'damie memory show' command",
+              "description": "Display memory history",
+              "file": "packages/cli/src/commands/memory/show.ts",
+              "type": "create",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-029-T09",
+              "title": "Create 'damie memory clear' command",
+              "description": "Clear memory history",
+              "file": "packages/cli/src/commands/memory/clear.ts",
+              "type": "create",
+              "estimated_minutes": 15
+            },
+            {
+              "id": "US-029-T10",
+              "title": "Write memory tests",
+              "description": "Unit tests for memory system",
+              "file": "packages/core/src/memory/memoryStore.test.ts",
+              "type": "create",
+              "estimated_minutes": 40
+            }
+          ]
+        },
+        {
+          "id": "US-030",
+          "title": "Task memory",
+          "tasks": [
+            {
+              "id": "US-030-T01",
+              "title": "Create task memory store",
+              "description": "Store task inputs and outputs",
+              "file": "packages/core/src/memory/taskMemory.ts",
+              "type": "create",
+              "estimated_minutes": 40
+            },
+            {
+              "id": "US-030-T02",
+              "title": "Implement task indexing",
+              "description": "Index tasks for retrieval",
+              "file": "packages/core/src/memory/taskIndexer.ts",
+              "type": "create",
+              "estimated_minutes": 35
+            },
+            {
+              "id": "US-030-T03",
+              "title": "Retrieve similar tasks",
+              "description": "Find past similar tasks",
+              "file": "packages/core/src/memory/taskRetriever.ts",
+              "type": "create",
+              "estimated_minutes": 40
+            },
+            {
+              "id": "US-030-T04",
+              "title": "Use past results in new tasks",
+              "description": "Inform new tasks with history",
+              "file": "packages/core/src/memory/taskMemory.ts",
+              "type": "modify",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-030-T05",
+              "title": "Implement expiration policy",
+              "description": "Expire old task memories",
+              "file": "packages/core/src/memory/memoryExpiration.ts",
+              "type": "create",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-030-T06",
+              "title": "Write task memory tests",
+              "description": "Tests for task memory",
+              "file": "packages/core/src/memory/taskMemory.test.ts",
+              "type": "create",
+              "estimated_minutes": 35
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-10",
+      "name": "Enhanced Tools",
+      "stories": [
+        {
+          "id": "US-031",
+          "title": "File operations tool",
+          "tasks": [
+            {
+              "id": "US-031-T01",
+              "title": "Create tools directory",
+              "description": "Create packages/core/src/tools/ directory structure",
+              "file": "packages/core/src/tools/",
+              "type": "create",
+              "estimated_minutes": 5
+            },
+            {
+              "id": "US-031-T02",
+              "title": "Extend file read tool",
+              "description": "Add line range support",
+              "file": "packages/core/src/tools/fileReadTool.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-031-T03",
+              "title": "Extend file write tool",
+              "description": "Add backup before write",
+              "file": "packages/core/src/tools/fileWriteTool.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-031-T04",
+              "title": "Create directory tool",
+              "description": "Create directories recursively",
+              "file": "packages/core/src/tools/directoryTool.ts",
+              "type": "create",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-031-T05",
+              "title": "Create delete tool",
+              "description": "Delete with confirmation",
+              "file": "packages/core/src/tools/deleteTool.ts",
+              "type": "create",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-031-T06",
+              "title": "Create move/rename tool",
+              "description": "Move and rename files",
+              "file": "packages/core/src/tools/moveTool.ts",
+              "type": "create",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-031-T07",
+              "title": "Create search tool",
+              "description": "Search file contents",
+              "file": "packages/core/src/tools/searchTool.ts",
+              "type": "create",
+              "estimated_minutes": 35
+            },
+            {
+              "id": "US-031-T08",
+              "title": "Write file tools tests",
+              "description": "Tests for file operations",
+              "file": "packages/core/src/tools/fileTools.test.ts",
+              "type": "create",
+              "estimated_minutes": 40
+            }
+          ]
+        },
+        {
+          "id": "US-032",
+          "title": "Shell command tool",
+          "tasks": [
+            {
+              "id": "US-032-T01",
+              "title": "Extend shell tool",
+              "description": "Enhanced shell command execution",
+              "file": "packages/core/src/tools/shellTool.ts",
+              "type": "create",
+              "estimated_minutes": 40
+            },
+            {
+              "id": "US-032-T02",
+              "title": "Add command timeout",
+              "description": "Configurable timeout per command",
+              "file": "packages/core/src/tools/shellTool.ts",
+              "type": "modify",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-032-T03",
+              "title": "Implement output streaming",
+              "description": "Stream output as command runs",
+              "file": "packages/core/src/tools/shellTool.ts",
+              "type": "modify",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-032-T04",
+              "title": "Handle exit codes",
+              "description": "Proper error handling for exit codes",
+              "file": "packages/core/src/tools/shellTool.ts",
+              "type": "modify",
+              "estimated_minutes": 15
+            },
+            {
+              "id": "US-032-T05",
+              "title": "Implement blocked commands",
+              "description": "Block dangerous commands by config",
+              "file": "packages/core/src/tools/commandBlocker.ts",
+              "type": "create",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-032-T06",
+              "title": "Support working directory",
+              "description": "Execute in specified directory",
+              "file": "packages/core/src/tools/shellTool.ts",
+              "type": "modify",
+              "estimated_minutes": 15
+            },
+            {
+              "id": "US-032-T07",
+              "title": "Write shell tool tests",
+              "description": "Tests for shell operations",
+              "file": "packages/core/src/tools/shellTool.test.ts",
+              "type": "create",
+              "estimated_minutes": 35
+            }
+          ]
+        },
+        {
+          "id": "US-033",
+          "title": "Git operations tool",
+          "tasks": [
+            {
+              "id": "US-033-T01",
+              "title": "Create git tool",
+              "description": "Git operations wrapper",
+              "file": "packages/core/src/tools/gitTool.ts",
+              "type": "create",
+              "estimated_minutes": 45
+            },
+            {
+              "id": "US-033-T02",
+              "title": "Implement status/add/commit",
+              "description": "Basic git operations",
+              "file": "packages/core/src/tools/gitTool.ts",
+              "type": "modify",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-033-T03",
+              "title": "Implement push/pull",
+              "description": "Remote operations",
+              "file": "packages/core/src/tools/gitTool.ts",
+              "type": "modify",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-033-T04",
+              "title": "Implement branch operations",
+              "description": "Branch create/switch/delete",
+              "file": "packages/core/src/tools/gitTool.ts",
+              "type": "modify",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-033-T05",
+              "title": "Implement diff viewing",
+              "description": "Show git diff",
+              "file": "packages/core/src/tools/gitTool.ts",
+              "type": "modify",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-033-T06",
+              "title": "Implement stash operations",
+              "description": "Stash save/pop/list",
+              "file": "packages/core/src/tools/gitTool.ts",
+              "type": "modify",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-033-T07",
+              "title": "Block destructive operations",
+              "description": "Confirm force push, reset --hard",
+              "file": "packages/core/src/tools/gitSafetyChecker.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-033-T08",
+              "title": "Write git tool tests",
+              "description": "Tests for git operations",
+              "file": "packages/core/src/tools/gitTool.test.ts",
+              "type": "create",
+              "estimated_minutes": 40
+            }
+          ]
+        },
+        {
+          "id": "US-034",
+          "title": "Sandbox configuration",
+          "tasks": [
+            {
+              "id": "US-034-T01",
+              "title": "Create sandbox config",
+              "description": "Sandbox settings in config",
+              "file": "packages/core/src/sandbox/sandboxConfig.ts",
+              "type": "create",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-034-T02",
+              "title": "Create sandbox manager",
+              "description": "Manage sandbox enforcement",
+              "file": "packages/core/src/sandbox/sandboxManager.ts",
+              "type": "create",
+              "estimated_minutes": 40
+            },
+            {
+              "id": "US-034-T03",
+              "title": "Implement global toggle",
+              "description": "Enable/disable sandbox globally",
+              "file": "packages/core/src/sandbox/sandboxManager.ts",
+              "type": "modify",
+              "estimated_minutes": 15
+            },
+            {
+              "id": "US-034-T04",
+              "title": "Implement per-tool permissions",
+              "description": "Per-tool sandbox settings",
+              "file": "packages/core/src/sandbox/toolPermissions.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-034-T05",
+              "title": "Implement path restrictions",
+              "description": "Allowed/blocked paths",
+              "file": "packages/core/src/sandbox/pathRestrictions.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-034-T06",
+              "title": "Create 'damie sandbox status' command",
+              "description": "Show current sandbox settings",
+              "file": "packages/cli/src/commands/sandbox.ts",
+              "type": "create",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-034-T07",
+              "title": "Write sandbox tests",
+              "description": "Tests for sandbox enforcement",
+              "file": "packages/core/src/sandbox/sandboxManager.test.ts",
+              "type": "create",
+              "estimated_minutes": 40
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-11",
+      "name": "Skills Integration",
+      "stories": [
+        {
+          "id": "US-035",
+          "title": "Pre-bundled skills installation",
+          "tasks": [
+            {
+              "id": "US-035-T01",
+              "title": "Create skills directory",
+              "description": "Create packages/core/src/skills/ directory structure",
+              "file": "packages/core/src/skills/",
+              "type": "create",
+              "estimated_minutes": 5
+            },
+            {
+              "id": "US-035-T02",
+              "title": "Define skills types",
+              "description": "Types for skill manifests and loading",
+              "file": "packages/core/src/skills/types.ts",
+              "type": "create",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-035-T03",
+              "title": "Create bundled skills list",
+              "description": "List of 11 pre-bundled skills",
+              "file": "packages/core/src/skills/bundledSkills.ts",
+              "type": "create",
+              "estimated_minutes": 15
+            },
+            {
+              "id": "US-035-T04",
+              "title": "Implement skill installer",
+              "description": "Install skills to ~/.damie/skills/",
+              "file": "packages/core/src/skills/skillInstaller.ts",
+              "type": "create",
+              "estimated_minutes": 45
+            },
+            {
+              "id": "US-035-T05",
+              "title": "Install on first run",
+              "description": "Install bundled skills during setup",
+              "file": "packages/cli/src/setup/setupWizard.ts",
+              "type": "modify",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-035-T06",
+              "title": "Create 'damie skills list' command",
+              "description": "Show installed skills",
+              "file": "packages/cli/src/commands/skills/list.ts",
+              "type": "create",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-035-T07",
+              "title": "Write skills installation tests",
+              "description": "Tests for skill installation",
+              "file": "packages/core/src/skills/skillInstaller.test.ts",
+              "type": "create",
+              "estimated_minutes": 35
+            }
+          ]
+        },
+        {
+          "id": "US-036",
+          "title": "Skills.sh integration",
+          "tasks": [
+            {
+              "id": "US-036-T01",
+              "title": "Create skills.sh client",
+              "description": "API client for skills.sh",
+              "file": "packages/core/src/skills/skillsShClient.ts",
+              "type": "create",
+              "estimated_minutes": 40
+            },
+            {
+              "id": "US-036-T02",
+              "title": "Create 'damie skills add' command",
+              "description": "Install skill from skills.sh",
+              "file": "packages/cli/src/commands/skills/add.ts",
+              "type": "create",
+              "estimated_minutes": 35
+            },
+            {
+              "id": "US-036-T03",
+              "title": "Support namespace format",
+              "description": "Support vercel-labs/agent-skills format",
+              "file": "packages/core/src/skills/skillsShClient.ts",
+              "type": "modify",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-036-T04",
+              "title": "Validate skills before install",
+              "description": "Check skill validity",
+              "file": "packages/core/src/skills/skillValidator.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-036-T05",
+              "title": "Resolve skill dependencies",
+              "description": "Handle skill dependencies",
+              "file": "packages/core/src/skills/dependencyResolver.ts",
+              "type": "create",
+              "estimated_minutes": 35
+            },
+            {
+              "id": "US-036-T06",
+              "title": "Create 'damie skills remove' command",
+              "description": "Uninstall a skill",
+              "file": "packages/cli/src/commands/skills/remove.ts",
+              "type": "create",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-036-T07",
+              "title": "Create 'damie skills update' command",
+              "description": "Update all skills",
+              "file": "packages/cli/src/commands/skills/update.ts",
+              "type": "create",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-036-T08",
+              "title": "Write skills.sh tests",
+              "description": "Tests for skills.sh integration",
+              "file": "packages/core/src/skills/skillsShClient.test.ts",
+              "type": "create",
+              "estimated_minutes": 40
+            }
+          ]
+        },
+        {
+          "id": "US-037",
+          "title": "Custom Damie skills",
+          "tasks": [
+            {
+              "id": "US-037-T01",
+              "title": "Create skill scaffolder",
+              "description": "Scaffold new skill project",
+              "file": "packages/core/src/skills/skillScaffolder.ts",
+              "type": "create",
+              "estimated_minutes": 40
+            },
+            {
+              "id": "US-037-T02",
+              "title": "Create 'damie skills create' command",
+              "description": "Create new skill interactively",
+              "file": "packages/cli/src/commands/skills/create.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-037-T03",
+              "title": "Create skill template",
+              "description": "Template with examples",
+              "file": "packages/core/src/skills/templates/",
+              "type": "create",
+              "estimated_minutes": 35
+            },
+            {
+              "id": "US-037-T04",
+              "title": "Implement dev mode",
+              "description": "Local skill development mode",
+              "file": "packages/core/src/skills/devMode.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-037-T05",
+              "title": "Generate skill documentation",
+              "description": "Auto-generate docs from skill",
+              "file": "packages/core/src/skills/docGenerator.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-037-T06",
+              "title": "Create 'damie skills link' command",
+              "description": "Link local skill for dev",
+              "file": "packages/cli/src/commands/skills/link.ts",
+              "type": "create",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-037-T07",
+              "title": "Write custom skill tests",
+              "description": "Tests for skill creation",
+              "file": "packages/core/src/skills/skillScaffolder.test.ts",
+              "type": "create",
+              "estimated_minutes": 35
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-12",
+      "name": "Prompt Profiles",
+      "stories": [
+        {
+          "id": "US-038",
+          "title": "Profile system",
+          "tasks": [
+            {
+              "id": "US-038-T01",
+              "title": "Create prompts directory",
+              "description": "Create packages/core/src/prompts/ directory structure",
+              "file": "packages/core/src/prompts/",
+              "type": "create",
+              "estimated_minutes": 5
+            },
+            {
+              "id": "US-038-T02",
+              "title": "Define profile types",
+              "description": "Types for profiles and settings",
+              "file": "packages/core/src/prompts/types.ts",
+              "type": "create",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-038-T03",
+              "title": "Create profile manager",
+              "description": "Load and manage profiles",
+              "file": "packages/core/src/prompts/profileManager.ts",
+              "type": "create",
+              "estimated_minutes": 45
+            },
+            {
+              "id": "US-038-T04",
+              "title": "Create default profiles",
+              "description": "coding, debugging, review, docs, refactoring",
+              "file": "packages/core/src/prompts/defaultProfiles.ts",
+              "type": "create",
+              "estimated_minutes": 50
+            },
+            {
+              "id": "US-038-T05",
+              "title": "Implement auto-selection",
+              "description": "Auto-select profile by task type",
+              "file": "packages/core/src/prompts/profileSelector.ts",
+              "type": "create",
+              "estimated_minutes": 35
+            },
+            {
+              "id": "US-038-T06",
+              "title": "Add --profile flag",
+              "description": "Override profile via CLI",
+              "file": "packages/cli/src/index.ts",
+              "type": "modify",
+              "estimated_minutes": 15
+            },
+            {
+              "id": "US-038-T07",
+              "title": "Create 'damie profiles list' command",
+              "description": "Show available profiles",
+              "file": "packages/cli/src/commands/profiles/list.ts",
+              "type": "create",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-038-T08",
+              "title": "Write profile tests",
+              "description": "Tests for profile system",
+              "file": "packages/core/src/prompts/profileManager.test.ts",
+              "type": "create",
+              "estimated_minutes": 40
+            }
+          ]
+        },
+        {
+          "id": "US-039",
+          "title": "Custom profiles",
+          "tasks": [
+            {
+              "id": "US-039-T01",
+              "title": "Create custom profile loader",
+              "description": "Load from ~/.damie/profiles/",
+              "file": "packages/core/src/prompts/customProfileLoader.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-039-T02",
+              "title": "Define YAML profile format",
+              "description": "YAML schema for profiles",
+              "file": "packages/core/src/prompts/profileSchema.ts",
+              "type": "create",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-039-T03",
+              "title": "Create 'damie profiles create' command",
+              "description": "Create new custom profile",
+              "file": "packages/cli/src/commands/profiles/create.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-039-T04",
+              "title": "Create 'damie profiles edit' command",
+              "description": "Open profile in editor",
+              "file": "packages/cli/src/commands/profiles/edit.ts",
+              "type": "create",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-039-T05",
+              "title": "Implement profile inheritance",
+              "description": "Extend base profiles",
+              "file": "packages/core/src/prompts/profileInheritance.ts",
+              "type": "create",
+              "estimated_minutes": 35
+            },
+            {
+              "id": "US-039-T06",
+              "title": "Write custom profile tests",
+              "description": "Tests for custom profiles",
+              "file": "packages/core/src/prompts/customProfileLoader.test.ts",
+              "type": "create",
+              "estimated_minutes": 35
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-13",
+      "name": "Plugin Support",
+      "stories": [
+        {
+          "id": "US-040",
+          "title": "Plugin system",
+          "tasks": [
+            {
+              "id": "US-040-T01",
+              "title": "Create plugins directory",
+              "description": "Create packages/core/src/plugins/ directory structure",
+              "file": "packages/core/src/plugins/",
+              "type": "create",
+              "estimated_minutes": 5
+            },
+            {
+              "id": "US-040-T02",
+              "title": "Define plugin interface",
+              "description": "TypeScript interface for plugins",
+              "file": "packages/core/src/plugins/types.ts",
+              "type": "create",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-040-T03",
+              "title": "Create plugin manager",
+              "description": "Main plugin management class",
+              "file": "packages/core/src/plugins/pluginManager.ts",
+              "type": "create",
+              "estimated_minutes": 55
+            },
+            {
+              "id": "US-040-T04",
+              "title": "Implement plugin discovery",
+              "description": "Find plugins in ~/.damie/plugins/",
+              "file": "packages/core/src/plugins/pluginDiscovery.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-040-T05",
+              "title": "Implement plugin lifecycle",
+              "description": "Load, enable, disable, unload",
+              "file": "packages/core/src/plugins/pluginLifecycle.ts",
+              "type": "create",
+              "estimated_minutes": 40
+            },
+            {
+              "id": "US-040-T06",
+              "title": "Add plugin config support",
+              "description": "Plugin settings in main config",
+              "file": "packages/core/src/plugins/pluginConfig.ts",
+              "type": "create",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-040-T07",
+              "title": "Create 'damie plugins list' command",
+              "description": "Show installed plugins",
+              "file": "packages/cli/src/commands/plugins/list.ts",
+              "type": "create",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-040-T08",
+              "title": "Create 'damie plugins enable/disable' commands",
+              "description": "Control plugin state",
+              "file": "packages/cli/src/commands/plugins/toggle.ts",
+              "type": "create",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-040-T09",
+              "title": "Write plugin tests",
+              "description": "Tests for plugin system",
+              "file": "packages/core/src/plugins/pluginManager.test.ts",
+              "type": "create",
+              "estimated_minutes": 45
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-14",
+      "name": "Sysadmin Tools",
+      "stories": [
+        {
+          "id": "US-041",
+          "title": "System monitoring",
+          "tasks": [
+            {
+              "id": "US-041-T01",
+              "title": "Create sysadmin directory",
+              "description": "Create packages/core/src/sysadmin/ directory structure",
+              "file": "packages/core/src/sysadmin/",
+              "type": "create",
+              "estimated_minutes": 5
+            },
+            {
+              "id": "US-041-T02",
+              "title": "Create system monitor class",
+              "description": "System information gathering",
+              "file": "packages/core/src/sysadmin/systemMonitor.ts",
+              "type": "create",
+              "estimated_minutes": 40
+            },
+            {
+              "id": "US-041-T03",
+              "title": "Implement CPU/memory/disk",
+              "description": "Get system resource usage",
+              "file": "packages/core/src/sysadmin/systemMonitor.ts",
+              "type": "modify",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-041-T04",
+              "title": "Implement process listing",
+              "description": "List running processes",
+              "file": "packages/core/src/sysadmin/processMonitor.ts",
+              "type": "create",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-041-T05",
+              "title": "Implement network check",
+              "description": "Check network connectivity",
+              "file": "packages/core/src/sysadmin/networkMonitor.ts",
+              "type": "create",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-041-T06",
+              "title": "Get environment variables",
+              "description": "List relevant env vars",
+              "file": "packages/core/src/sysadmin/envMonitor.ts",
+              "type": "create",
+              "estimated_minutes": 15
+            },
+            {
+              "id": "US-041-T07",
+              "title": "Detect installed runtimes",
+              "description": "Node, Python, Go, etc.",
+              "file": "packages/core/src/sysadmin/runtimeDetector.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-041-T08",
+              "title": "Write sysadmin tests",
+              "description": "Tests for system monitoring",
+              "file": "packages/core/src/sysadmin/systemMonitor.test.ts",
+              "type": "create",
+              "estimated_minutes": 35
+            }
+          ]
+        },
+        {
+          "id": "US-042",
+          "title": "Diagnostic commands",
+          "tasks": [
+            {
+              "id": "US-042-T01",
+              "title": "Create doctor class",
+              "description": "Diagnostic runner",
+              "file": "packages/core/src/sysadmin/doctor.ts",
+              "type": "create",
+              "estimated_minutes": 40
+            },
+            {
+              "id": "US-042-T02",
+              "title": "Check API connectivity",
+              "description": "Test connection to APIs",
+              "file": "packages/core/src/sysadmin/checks/apiCheck.ts",
+              "type": "create",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-042-T03",
+              "title": "Check config validity",
+              "description": "Validate config file",
+              "file": "packages/core/src/sysadmin/checks/configCheck.ts",
+              "type": "create",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-042-T04",
+              "title": "Check skill installations",
+              "description": "Verify skills are valid",
+              "file": "packages/core/src/sysadmin/checks/skillsCheck.ts",
+              "type": "create",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-042-T05",
+              "title": "Check dependencies",
+              "description": "Verify Node.js, npm versions",
+              "file": "packages/core/src/sysadmin/checks/dependencyCheck.ts",
+              "type": "create",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-042-T06",
+              "title": "Generate recommendations",
+              "description": "Actionable fix suggestions",
+              "file": "packages/core/src/sysadmin/doctor.ts",
+              "type": "modify",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-042-T07",
+              "title": "Create 'damie doctor' command",
+              "description": "Run all diagnostics",
+              "file": "packages/cli/src/commands/doctor.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-042-T08",
+              "title": "Write diagnostic tests",
+              "description": "Tests for diagnostics",
+              "file": "packages/core/src/sysadmin/doctor.test.ts",
+              "type": "create",
+              "estimated_minutes": 35
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-15",
+      "name": "Package Manager Integration",
+      "stories": [
+        {
+          "id": "US-043",
+          "title": "Dependency management",
+          "tasks": [
+            {
+              "id": "US-043-T01",
+              "title": "Create package manager directory",
+              "description": "Create packages/core/src/packageManager/ directory structure",
+              "file": "packages/core/src/packageManager/",
+              "type": "create",
+              "estimated_minutes": 5
+            },
+            {
+              "id": "US-043-T02",
+              "title": "Define package manager types",
+              "description": "Types for package operations",
+              "file": "packages/core/src/packageManager/types.ts",
+              "type": "create",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-043-T03",
+              "title": "Create package manager class",
+              "description": "Main package management logic",
+              "file": "packages/core/src/packageManager/packageManager.ts",
+              "type": "create",
+              "estimated_minutes": 45
+            },
+            {
+              "id": "US-043-T04",
+              "title": "Detect package manager",
+              "description": "Detect npm, yarn, pnpm, bun",
+              "file": "packages/core/src/packageManager/managerDetector.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-043-T05",
+              "title": "Implement install/uninstall",
+              "description": "Install and remove packages",
+              "file": "packages/core/src/packageManager/packageManager.ts",
+              "type": "modify",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-043-T06",
+              "title": "Implement update",
+              "description": "Update packages",
+              "file": "packages/core/src/packageManager/packageManager.ts",
+              "type": "modify",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "US-043-T07",
+              "title": "Check vulnerabilities",
+              "description": "Run npm audit equivalent",
+              "file": "packages/core/src/packageManager/vulnerabilityChecker.ts",
+              "type": "create",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-043-T08",
+              "title": "Parse package files",
+              "description": "Parse package.json, requirements.txt",
+              "file": "packages/core/src/packageManager/packageParser.ts",
+              "type": "create",
+              "estimated_minutes": 35
+            },
+            {
+              "id": "US-043-T09",
+              "title": "Write package manager tests",
+              "description": "Tests for package management",
+              "file": "packages/core/src/packageManager/packageManager.test.ts",
+              "type": "create",
+              "estimated_minutes": 40
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-16",
+      "name": "Documentation & Release",
+      "stories": [
+        {
+          "id": "US-044",
+          "title": "User documentation",
+          "tasks": [
+            {
+              "id": "US-044-T01",
+              "title": "Update README.md",
+              "description": "Damie branding and overview",
+              "file": "README.md",
+              "type": "modify",
+              "estimated_minutes": 45
+            },
+            {
+              "id": "US-044-T02",
+              "title": "Create installation guide",
+              "description": "Windows, macOS, Linux install",
+              "file": "docs/installation.md",
+              "type": "create",
+              "estimated_minutes": 40
+            },
+            {
+              "id": "US-044-T03",
+              "title": "Create configuration reference",
+              "description": "All config options documented",
+              "file": "docs/configuration.md",
+              "type": "create",
+              "estimated_minutes": 50
+            },
+            {
+              "id": "US-044-T04",
+              "title": "Create command reference",
+              "description": "All CLI commands documented",
+              "file": "docs/commands.md",
+              "type": "create",
+              "estimated_minutes": 60
+            },
+            {
+              "id": "US-044-T05",
+              "title": "Create skills guide",
+              "description": "Using and creating skills",
+              "file": "docs/skills.md",
+              "type": "create",
+              "estimated_minutes": 45
+            },
+            {
+              "id": "US-044-T06",
+              "title": "Create troubleshooting guide",
+              "description": "Common issues and solutions",
+              "file": "docs/troubleshooting.md",
+              "type": "create",
+              "estimated_minutes": 40
+            },
+            {
+              "id": "US-044-T07",
+              "title": "Create examples and tutorials",
+              "description": "Usage examples",
+              "file": "docs/examples.md",
+              "type": "create",
+              "estimated_minutes": 50
+            }
+          ]
+        },
+        {
+          "id": "US-045",
+          "title": "Release packaging",
+          "tasks": [
+            {
+              "id": "US-045-T01",
+              "title": "Update package.json for npm",
+              "description": "Prepare for npm publish",
+              "file": "package.json",
+              "type": "modify",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-045-T02",
+              "title": "Configure npm package name",
+              "description": "Set name to damie-code",
+              "file": "package.json",
+              "type": "modify",
+              "estimated_minutes": 10
+            },
+            {
+              "id": "US-045-T03",
+              "title": "Create binary build script",
+              "description": "Build binaries for platforms",
+              "file": "scripts/build-binaries.js",
+              "type": "create",
+              "estimated_minutes": 60
+            },
+            {
+              "id": "US-045-T04",
+              "title": "Create version script",
+              "description": "Version bump automation",
+              "file": "scripts/version.js",
+              "type": "create",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "US-045-T05",
+              "title": "Create changelog generator",
+              "description": "Auto-generate changelog",
+              "file": "scripts/changelog.js",
+              "type": "create",
+              "estimated_minutes": 35
+            },
+            {
+              "id": "US-045-T06",
+              "title": "Create GitHub release workflow",
+              "description": "GitHub Actions for releases",
+              "file": ".github/workflows/release.yml",
+              "type": "create",
+              "estimated_minutes": 45
+            },
+            {
+              "id": "US-045-T07",
+              "title": "Test npm publish",
+              "description": "Dry run npm publish",
+              "type": "verify",
+              "estimated_minutes": 20
+            },
+            {
+              "id": "US-045-T08",
+              "title": "Create release checklist",
+              "description": "Document release process",
+              "file": "docs/release-checklist.md",
+              "type": "create",
+              "estimated_minutes": 25
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "total_phases": 17,
+    "total_stories": 45,
+    "total_tasks": 350,
+    "estimated_hours": 230
+  }
+}

@@ -1,0 +1,111 @@
+# Dependencies
+node_modules/
+bower_components/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# IDE
+.idea/
+.vscode/
+*.iml
+.cursor
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env~
+
+# Test coverage
+coverage/
+*.lcov
+junit.xml
+
+# Testing
+.integration-tests/
+
+# Docker
+.docker/
+
+# Generated files
+packages/cli/src/generated/
+packages/core/src/generated/
+packages/vscode-ide-companion/*.vsix
+
+# Config directories (keep root .damie)
+.damie/*
+!.damie/config.yaml
+!.damie/commands/
+
+# AI working directories
+.claude/
+.qwen/
+.gemini/
+stage/
+mydev/tracking/sessions/
+
+# AI Artifacts (keep README, LICENSE, CONTRIBUTING, CHANGELOG)
+AUDIT_REPORT.md
+IMPLEMENTATION_COMPLETE.md
+LAUNCH_CHECKLIST.md
+LAUNCH_SUCCESS.md
+RELEASE_NOTES.md
+CONTEXT.md
+mydev/tracking/*.md
+mydev/PROJECT-COMPLETION-SUMMARY.md
+mydev/CLAUDE.md
+
+# Documentation (keep essential, exclude detailed guides)
+docs/user-guide.md
+docs/developer-guide.md
+docs/NPM_PUBLISH_GUIDE.md
+docs/development/*.md
+docs/damie/*.md
+docs/cli/*.md
+docs/core/*.md
+docs/features/*.md
+docs/tools/*.md
+docs/support/*.md
+docs/examples/*.md
+docs/extensions/*.md
+docs/ide-integration/*.md
+docs/mermaid/*.md
+docs/_meta.ts
+docs/sidebar.json
+docs/index.md
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.swp
+*.swo
+*~
+
+# Bundle artifacts
+bundle/
+
+# GHA credentials
+gha-creds-*.json
+
+# Patch output
+patch_output.log
