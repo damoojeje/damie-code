@@ -92,6 +92,11 @@ export function createContentGeneratorConfig(
   const googleCloudProject = process.env['GOOGLE_CLOUD_PROJECT'] || undefined;
   const googleCloudLocation = process.env['GOOGLE_CLOUD_LOCATION'] || undefined;
 
+  // Damie Code provider API keys from environment
+  const deepseekApiKey = process.env['DEEPSEEK_API_KEY'] || undefined;
+  const anthropicApiKey = process.env['ANTHROPIC_API_KEY'] || undefined;
+  const openrouterApiKey = process.env['OPENROUTER_API_KEY'] || undefined;
+
   const newContentGeneratorConfig: ContentGeneratorConfig = {
     ...(generationConfig || {}),
     model: generationConfig?.model || DEFAULT_QWEN_MODEL,
@@ -130,6 +135,35 @@ export function createContentGeneratorConfig(
     newContentGeneratorConfig.apiKey = 'QWEN_OAUTH_DYNAMIC_TOKEN';
     newContentGeneratorConfig.model = DEFAULT_QWEN_MODEL;
 
+    return newContentGeneratorConfig;
+  }
+
+  // Damie Code providers configuration
+  if (authType === AuthType.USE_DEEPSEEK) {
+    newContentGeneratorConfig.apiKey = deepseekApiKey;
+    newContentGeneratorConfig.baseUrl = 'https://api.deepseek.com';
+    newContentGeneratorConfig.model = generationConfig?.model || 'deepseek-coder';
+    return newContentGeneratorConfig;
+  }
+
+  if (authType === AuthType.USE_ANTHROPIC) {
+    newContentGeneratorConfig.apiKey = anthropicApiKey;
+    newContentGeneratorConfig.baseUrl = 'https://api.anthropic.com/v1';
+    newContentGeneratorConfig.model = generationConfig?.model || 'claude-3-5-sonnet-20241022';
+    return newContentGeneratorConfig;
+  }
+
+  if (authType === AuthType.USE_OPENROUTER) {
+    newContentGeneratorConfig.apiKey = openrouterApiKey;
+    newContentGeneratorConfig.baseUrl = 'https://openrouter.ai/api/v1';
+    newContentGeneratorConfig.model = generationConfig?.model || 'anthropic/claude-3-5-sonnet';
+    return newContentGeneratorConfig;
+  }
+
+  if (authType === AuthType.USE_OLLAMA) {
+    newContentGeneratorConfig.baseUrl = generationConfig?.baseUrl || 'http://localhost:11434/v1';
+    newContentGeneratorConfig.model = generationConfig?.model || 'codellama';
+    // Ollama doesn't require API key
     return newContentGeneratorConfig;
   }
 
@@ -220,6 +254,27 @@ export async function createContentGenerator(
         `Failed to initialize Qwen: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
+  }
+
+  // Damie Code providers: DeepSeek, Anthropic, OpenRouter, Ollama
+  if (
+    config.authType === AuthType.USE_DEEPSEEK ||
+    config.authType === AuthType.USE_ANTHROPIC ||
+    config.authType === AuthType.USE_OPENROUTER ||
+    config.authType === AuthType.USE_OLLAMA
+  ) {
+    if (!config.apiKey && config.authType !== AuthType.USE_OLLAMA) {
+      throw new Error(
+        `API key is required for ${config.authType}. Set the appropriate environment variable or configure in config file.`,
+      );
+    }
+
+    // Import OpenAIContentGenerator dynamically
+    const { createOpenAIContentGenerator } = await import(
+      './openaiContentGenerator/index.js'
+    );
+
+    return createOpenAIContentGenerator(config, gcConfig);
   }
 
   throw new Error(
