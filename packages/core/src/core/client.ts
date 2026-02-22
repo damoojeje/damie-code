@@ -671,6 +671,36 @@ export class GeminiClient {
 
     try {
       const userMemory = this.config.getUserMemory();
+      
+      // Extract task from contents for model routing
+      const taskText = this.extractTaskFromContents(contents);
+      
+      // Use ModelRouter to select optimal model if not in fallback mode
+      let modelToUse = model;
+      if (!this.config.isInFallbackMode() && taskText) {
+        try {
+          const { ModelRouter } = await import('../router/modelRouter.js');
+          const router = new ModelRouter();
+          const routingDecision = router.route(taskText);
+          
+          // Use routed model if different from current
+          if (routingDecision.model !== model) {
+            modelToUse = routingDecision.model;
+            // Log routing decision for debugging
+            if (this.config.getDebugMode()) {
+              console.log(`[ModelRouter] Task: "${taskText.substring(0, 50)}..."`);
+              console.log(`[ModelRouter] Routed to: ${routingDecision.provider}/${routingDecision.model}`);
+              console.log(`[ModelRouter] Reason: ${routingDecision.reason}`);
+            }
+          }
+        } catch (routerError) {
+          // If routing fails, use original model
+          if (this.config.getDebugMode()) {
+            console.log(`[ModelRouter] Routing failed, using original model: ${routerError}`);
+          }
+        }
+      }
+      
       const finalSystemInstruction = generationConfig.systemInstruction
         ? getCustomSystemPrompt(generationConfig.systemInstruction, userMemory)
         : getCoreSystemPrompt(userMemory, this.config.getModel());
@@ -682,9 +712,6 @@ export class GeminiClient {
       };
 
       const apiCall = () => {
-        const modelToUse = this.config.isInFallbackMode()
-          ? DEFAULT_GEMINI_FLASH_MODEL
-          : model;
         currentAttemptModel = modelToUse;
 
         return this.getContentGeneratorOrFail().generateContent(
@@ -726,6 +753,28 @@ export class GeminiClient {
         `Failed to generate content with model ${currentAttemptModel}: ${getErrorMessage(error)}`,
       );
     }
+  }
+
+  /**
+   * Extract task text from contents for model routing
+   */
+  private extractTaskFromContents(contents: Content[]): string {
+    if (!contents || contents.length === 0) {
+      return '';
+    }
+    
+    // Get the last user message
+    const lastUserContent = contents.filter(c => c.role === 'user').pop();
+    if (!lastUserContent || !lastUserContent.parts) {
+      return '';
+    }
+    
+    // Extract text from parts
+    const textParts = lastUserContent.parts
+      .filter(part => typeof part === 'object' && 'text' in part)
+      .map(part => (part as any).text);
+    
+    return textParts.join(' ');
   }
 
   async tryCompressChat(

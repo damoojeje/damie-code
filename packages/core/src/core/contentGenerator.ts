@@ -92,10 +92,15 @@ export function createContentGeneratorConfig(
   const googleCloudProject = process.env['GOOGLE_CLOUD_PROJECT'] || undefined;
   const googleCloudLocation = process.env['GOOGLE_CLOUD_LOCATION'] || undefined;
 
-  // Damie Code provider API keys from environment
-  const deepseekApiKey = process.env['DEEPSEEK_API_KEY'] || undefined;
-  const anthropicApiKey = process.env['ANTHROPIC_API_KEY'] || undefined;
-  const openrouterApiKey = process.env['OPENROUTER_API_KEY'] || undefined;
+  // Load Damie config file for provider settings
+  const { loadDamieConfig } = require('../config/damieConfigLoader.js');
+  const damieConfig = loadDamieConfig();
+
+  // Damie Code provider API keys from config file or environment
+  const deepseekConfig = damieConfig?.providers?.deepseek;
+  const anthropicConfig = damieConfig?.providers?.anthropic;
+  const openrouterConfig = damieConfig?.providers?.openrouter;
+  const ollamaConfig = damieConfig?.providers?.ollama;
 
   const newContentGeneratorConfig: ContentGeneratorConfig = {
     ...(generationConfig || {}),
@@ -139,30 +144,69 @@ export function createContentGeneratorConfig(
   }
 
   // Damie Code providers configuration
+  // Priority: config file > generationConfig > environment > defaults
   if (authType === AuthType.USE_DEEPSEEK) {
-    newContentGeneratorConfig.apiKey = deepseekApiKey;
-    newContentGeneratorConfig.baseUrl = 'https://api.deepseek.com';
-    newContentGeneratorConfig.model = generationConfig?.model || 'deepseek-coder';
+    newContentGeneratorConfig.apiKey = 
+      deepseekConfig?.apiKey || 
+      process.env['DEEPSEEK_API_KEY'] || 
+      undefined;
+    newContentGeneratorConfig.baseUrl = 
+      deepseekConfig?.baseUrl || 
+      'https://api.deepseek.com';
+    newContentGeneratorConfig.model = 
+      generationConfig?.model || 
+      deepseekConfig?.model || 
+      'deepseek-chat';
+    newContentGeneratorConfig.timeout = deepseekConfig?.timeout;
+    newContentGeneratorConfig.maxRetries = deepseekConfig?.maxRetries;
     return newContentGeneratorConfig;
   }
 
   if (authType === AuthType.USE_ANTHROPIC) {
-    newContentGeneratorConfig.apiKey = anthropicApiKey;
-    newContentGeneratorConfig.baseUrl = 'https://api.anthropic.com/v1';
-    newContentGeneratorConfig.model = generationConfig?.model || 'claude-3-5-sonnet-20241022';
+    newContentGeneratorConfig.apiKey = 
+      anthropicConfig?.apiKey || 
+      process.env['ANTHROPIC_API_KEY'] || 
+      undefined;
+    newContentGeneratorConfig.baseUrl = 
+      anthropicConfig?.baseUrl || 
+      'https://api.anthropic.com/v1';
+    newContentGeneratorConfig.model = 
+      generationConfig?.model || 
+      anthropicConfig?.model || 
+      'claude-3-5-sonnet-20241022';
+    newContentGeneratorConfig.timeout = anthropicConfig?.timeout;
+    newContentGeneratorConfig.maxRetries = anthropicConfig?.maxRetries;
     return newContentGeneratorConfig;
   }
 
   if (authType === AuthType.USE_OPENROUTER) {
-    newContentGeneratorConfig.apiKey = openrouterApiKey;
-    newContentGeneratorConfig.baseUrl = 'https://openrouter.ai/api/v1';
-    newContentGeneratorConfig.model = generationConfig?.model || 'anthropic/claude-3-5-sonnet';
+    newContentGeneratorConfig.apiKey = 
+      openrouterConfig?.apiKey || 
+      process.env['OPENROUTER_API_KEY'] || 
+      undefined;
+    newContentGeneratorConfig.baseUrl = 
+      openrouterConfig?.baseUrl || 
+      'https://openrouter.ai/api/v1';
+    newContentGeneratorConfig.model = 
+      generationConfig?.model || 
+      openrouterConfig?.model || 
+      'anthropic/claude-3-5-sonnet';
+    newContentGeneratorConfig.timeout = openrouterConfig?.timeout;
+    newContentGeneratorConfig.maxRetries = openrouterConfig?.maxRetries;
     return newContentGeneratorConfig;
   }
 
   if (authType === AuthType.USE_OLLAMA) {
-    newContentGeneratorConfig.baseUrl = generationConfig?.baseUrl || 'http://localhost:11434/v1';
-    newContentGeneratorConfig.model = generationConfig?.model || 'codellama';
+    newContentGeneratorConfig.baseUrl = 
+      ollamaConfig?.baseUrl || 
+      generationConfig?.baseUrl || 
+      'http://localhost:11434/v1';
+    newContentGeneratorConfig.model = 
+      generationConfig?.model || 
+      ollamaConfig?.model || 
+      'codellama';
+    newContentGeneratorConfig.timeout = ollamaConfig?.timeout;
+    newContentGeneratorConfig.maxRetries = ollamaConfig?.maxRetries;
     // Ollama doesn't require API key
     return newContentGeneratorConfig;
   }
@@ -263,9 +307,20 @@ export async function createContentGenerator(
     config.authType === AuthType.USE_OPENROUTER ||
     config.authType === AuthType.USE_OLLAMA
   ) {
+    // Provide clear error messages for missing configuration
     if (!config.apiKey && config.authType !== AuthType.USE_OLLAMA) {
+      const providerName = getProviderNameForAuthType(config.authType);
+      const envVar = getProviderEnvVar(config.authType);
+      
       throw new Error(
-        `API key is required for ${config.authType}. Set the appropriate environment variable or configure in config file.`,
+        `API key required for ${providerName}.\n\n` +
+        `To fix this, either:\n` +
+        `1. Set environment variable: export ${envVar}="your-api-key"\n` +
+        `2. Or add to ~/.damie/config.yaml:\n` +
+        `   providers:\n` +
+        `     ${providerName.toLowerCase()}:\n` +
+        `       apiKey: "your-api-key"\n\n` +
+        `Get API key from: ${getProviderDocsUrl(config.authType)}`
       );
     }
 
@@ -280,4 +335,58 @@ export async function createContentGenerator(
   throw new Error(
     `Error creating contentGenerator: Unsupported authType: ${config.authType}`,
   );
+}
+
+/**
+ * Get provider name for auth type
+ */
+function getProviderNameForAuthType(authType: AuthType): string {
+  switch (authType) {
+    case AuthType.USE_DEEPSEEK:
+      return 'DeepSeek';
+    case AuthType.USE_ANTHROPIC:
+      return 'Anthropic';
+    case AuthType.USE_OPENROUTER:
+      return 'OpenRouter';
+    case AuthType.USE_OLLAMA:
+      return 'Ollama';
+    default:
+      return authType;
+  }
+}
+
+/**
+ * Get environment variable name for auth type
+ */
+function getProviderEnvVar(authType: AuthType): string {
+  switch (authType) {
+    case AuthType.USE_DEEPSEEK:
+      return 'DEEPSEEK_API_KEY';
+    case AuthType.USE_ANTHROPIC:
+      return 'ANTHROPIC_API_KEY';
+    case AuthType.USE_OPENROUTER:
+      return 'OPENROUTER_API_KEY';
+    case AuthType.USE_OLLAMA:
+      return 'OLLAMA_BASE_URL';
+    default:
+      return 'API_KEY';
+  }
+}
+
+/**
+ * Get provider documentation URL
+ */
+function getProviderDocsUrl(authType: AuthType): string {
+  switch (authType) {
+    case AuthType.USE_DEEPSEEK:
+      return 'https://platform.deepseek.com';
+    case AuthType.USE_ANTHROPIC:
+      return 'https://console.anthropic.com';
+    case AuthType.USE_OPENROUTER:
+      return 'https://openrouter.ai';
+    case AuthType.USE_OLLAMA:
+      return 'https://ollama.ai';
+    default:
+      return 'https://github.com/damoojeje/damie-code';
+  }
 }

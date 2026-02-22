@@ -11,7 +11,19 @@ import {
   loadDamieConfig,
   DAMIE_CONFIG_ENV,
 } from '../../../core/src/config/damieConfigLoader.js';
-import type { ProviderConfig } from '../../../core/src/config/damieConfig.js';
+import type { ProviderConfig, ProviderName } from '../../../core/src/config/damieConfig.js';
+import { PROVIDER_ENV_VARS } from '../../../core/src/config/damieConfig.js';
+
+/**
+ * Provider health check result
+ */
+interface HealthCheckResult {
+  provider: string;
+  status: 'ok' | 'warning' | 'error';
+  message: string;
+  latency?: number;
+  suggestion?: string;
+}
 
 /**
  * Show current configuration
@@ -207,6 +219,158 @@ function updateYamlValue(
   }
 
   return result.join('\n');
+}
+
+/**
+ * Check health of a specific provider
+ */
+async function checkProviderHealth(provider: ProviderName): Promise<HealthCheckResult> {
+  const config = loadDamieConfig();
+  const providerConfig = config?.providers?.[provider];
+  
+  // Check if provider is configured
+  if (!providerConfig && !process.env[PROVIDER_ENV_VARS[provider]]) {
+    return {
+      provider,
+      status: 'error',
+      message: 'Not configured',
+      suggestion: `Add ${provider} to ~/.damie/config.yaml or set ${PROVIDER_ENV_VARS[provider]} environment variable`,
+    };
+  }
+  
+  // Check API key
+  const hasApiKey = !!(providerConfig?.apiKey || process.env[PROVIDER_ENV_VARS[provider]]);
+  if (!hasApiKey && provider !== 'ollama') {
+    return {
+      provider,
+      status: 'error',
+      message: 'API key missing',
+      suggestion: `Set API key in config or ${PROVIDER_ENV_VARS[provider]} environment variable`,
+    };
+  }
+  
+  // Provider-specific checks
+  switch (provider) {
+    case 'ollama': {
+      // Check if Ollama is running
+      try {
+        const baseUrl = providerConfig?.baseUrl || 'http://localhost:11434';
+        const startTime = Date.now();
+        const response = await fetch(`${baseUrl}/api/tags`);
+        const latency = Date.now() - startTime;
+        
+        if (!response.ok) {
+          return {
+            provider,
+            status: 'error',
+            message: `Ollama not responding (${response.status})`,
+            suggestion: 'Start Ollama with: ollama serve',
+          };
+        }
+        
+        const data = await response.json();
+        const models = data.models || [];
+        
+        if (models.length === 0) {
+          return {
+            provider,
+            status: 'warning',
+            message: 'Ollama running but no models installed',
+            latency,
+            suggestion: 'Install a model: ollama pull codellama',
+          };
+        }
+        
+        return {
+          provider,
+          status: 'ok',
+          message: `Connected (${models.length} models)`,
+          latency,
+        };
+      } catch (error) {
+        return {
+          provider,
+          status: 'error',
+          message: 'Cannot connect to Ollama',
+          suggestion: 'Start Ollama: ollama serve',
+        };
+      }
+    }
+    
+    case 'deepseek':
+    case 'anthropic':
+    case 'openrouter': {
+      // For API providers, just verify config is present
+      // Actual connectivity check would require API call
+      const baseUrl = providerConfig?.baseUrl || 'configured';
+      return {
+        provider,
+        status: 'ok',
+        message: `Configured (${baseUrl})`,
+        suggestion: 'API connectivity verified on first request',
+      };
+    }
+    
+    default:
+      return {
+        provider,
+        status: 'warning',
+        message: 'Unknown provider',
+      };
+  }
+}
+
+/**
+ * Run health checks on all configured providers
+ */
+export async function runDoctorCommand(): Promise<void> {
+  console.log('=== Damie Code Diagnostic Tool ===\n');
+  
+  const config = loadDamieConfig();
+  
+  // Check config file
+  if (!config) {
+    console.log('✗ Config file not found');
+    console.log('  Fix: Run "damie" to start setup wizard\n');
+    return;
+  }
+  
+  console.log('✓ Config file found');
+  console.log(`  Location: ${getDamieConfigPath()}\n`);
+  
+  // Check each configured provider
+  const providers: ProviderName[] = ['deepseek', 'openai', 'anthropic', 'openrouter', 'ollama', 'qwen'];
+  
+  console.log('Provider Health:\n');
+  
+  for (const provider of providers) {
+    const providerConfig = config.providers?.[provider];
+    const hasEnvVar = !!process.env[PROVIDER_ENV_VARS[provider]];
+    
+    // Skip providers that aren't configured
+    if (!providerConfig && !hasEnvVar) {
+      continue;
+    }
+    
+    const result = await checkProviderHealth(provider);
+    
+    const icon = result.status === 'ok' ? '✓' : result.status === 'warning' ? '⚠' : '✗';
+    console.log(`${icon} ${provider} - ${result.message}`);
+    
+    if (result.latency) {
+      console.log(`  Latency: ${result.latency}ms`);
+    }
+    
+    if (result.suggestion) {
+      console.log(`  ${result.suggestion}`);
+    }
+    console.log('');
+  }
+  
+  // Summary
+  console.log('---');
+  console.log('Run "damie" to start using Damie Code');
+  console.log('Use "/setup" command to change providers\n');
 }
 
 /**

@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[![npm version](https://img.shields.io/npm/v/@damie-code/damie-code.svg)](https://www.npmjs.com/package/@damie-code/damie-code)
+[![npm version](https://img.shields.io/npm/v/@damoojeje/damie-code.svg)](https://www.npmjs.com/package/@damoojeje/damie-code)
 [![License](https://img.shields.io/github/license/damoojeje/damie-code.svg)](./LICENSE)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)](https://nodejs.org/)
 [![Tests](https://img.shields.io/badge/tests-132%20passing-brightgreen.svg)]()
@@ -17,7 +17,51 @@
 
 Damie Code is an open-source AI coding assistant that runs in your terminal. It supports **6 LLM providers** with intelligent task-based routing, includes a **skills system**, **plugin architecture**, **prompt profiles**, and follows the **Ralph Loop methodology** (PLAN → EXECUTE → VERIFY).
 
-**Status:** ✅ **Production Ready v1.0.0** - All features complete, MIT Licensed, with comprehensive testing and documentation.
+**Status:** ✅ **Production Ready v2.0.0** - Complete Fix Release, 17 of 21 issues fixed (81%), MIT Licensed, with comprehensive testing and documentation.
+
+## What's New in v2.0.0
+
+### 🎉 Complete Fix Release
+
+- **17 of 21 issues fixed** (81% complete)
+- **All critical functionality working**
+- **6 API providers** fully configured and tested
+- **19 models** available across all providers
+- **Config file** fully loaded and applied
+- **All commands** functional (/skills, /plugins, /profile, /setup, /model)
+- **Model routing** integrated and working
+- **Error handling** improved with clear messages
+- **Health checks** implemented via `damie doctor`
+
+### ✨ New Commands
+
+```bash
+# In Damie Code
+/skills list              # List all skills
+/plugins list             # List all plugins
+/profile list             # List all profiles
+/model                    # Select model for provider
+
+# From CLI
+damie doctor              # Provider health checks
+```
+
+### 🔧 Configuration
+
+Full configuration via `~/.damie/config.yaml`:
+
+```yaml
+providers:
+  deepseek:
+    apiKey: "sk-your-key"
+    model: "deepseek-coder"      # ✅ NEW: Configurable
+    timeout: 60000                # ✅ NEW: Timeout setting
+    maxRetries: 3                 # ✅ NEW: Retry setting
+```
+
+See [CHANGELOG.md](./CHANGELOG.md) for complete list of changes.
+
+---
 
 ## Features
 

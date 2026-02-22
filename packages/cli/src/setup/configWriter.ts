@@ -11,6 +11,28 @@ import type { SetupConfig } from './types.js';
 import { getProviderInfo } from './types.js';
 
 /**
+ * Get default model for a provider
+ */
+function getDefaultModelForProvider(provider: AuthType): string {
+  switch (provider) {
+    case AuthType.USE_DEEPSEEK:
+      return 'deepseek-chat';
+    case AuthType.USE_ANTHROPIC:
+      return 'claude-3-5-sonnet-20241022';
+    case AuthType.USE_OPENROUTER:
+      return 'anthropic/claude-3-5-sonnet';
+    case AuthType.USE_OLLAMA:
+      return 'codellama';
+    case AuthType.USE_OPENAI:
+      return 'gpt-4o';
+    case AuthType.QWEN_OAUTH:
+      return 'qwen-max';
+    default:
+      return 'deepseek-chat';
+  }
+}
+
+/**
  * Generate YAML config content from setup config (supports multiple providers)
  */
 function generateConfigYaml(
@@ -38,29 +60,33 @@ function generateConfigYaml(
   configs.forEach(({ provider, apiKey, model }) => {
     const info = getProviderInfo(provider);
     const providerKey = provider.replace('USE_', '').toLowerCase();
-    
+
     lines.push('');
     lines.push(`# ${info?.name || provider} settings`);
     lines.push(`${providerKey}:`);
-    
+
     if (apiKey && info?.envVar) {
       lines.push(`  apiKey: env:${info.envVar}  # Set via environment`);
     }
-    
+
+    // ALWAYS save model - use default if not provided
     if (model) {
       lines.push(`  model: "${model}"`);
-    } else if (provider === AuthType.USE_OLLAMA) {
-      lines.push('  model: "llama3.1"  # Default model');
+    } else {
+      // Provide appropriate default model for each provider
+      const defaultModel = getDefaultModelForProvider(provider);
+      lines.push(`  model: "${defaultModel}"`);
+    }
+
+    // Add provider-specific defaults
+    if (provider === AuthType.USE_OLLAMA) {
       lines.push('  baseUrl: "http://localhost:11434"');
     } else if (provider === AuthType.USE_OPENROUTER) {
-      lines.push('  model: "openai/gpt-4o"  # Default model');
       lines.push('  baseUrl: "https://openrouter.ai/api/v1"');
-    } else if (provider === AuthType.USE_DEEPSEEK) {
-      lines.push('  model: "deepseek-chat"  # or "deepseek-coder"');
     } else if (provider === AuthType.USE_ANTHROPIC) {
-      lines.push('  model: "claude-3-5-sonnet-20241022"');
-    } else if (provider === AuthType.USE_OPENAI) {
-      lines.push('  model: "gpt-4o"');
+      lines.push('  baseUrl: "https://api.anthropic.com/v1"');
+    } else if (provider === AuthType.USE_DEEPSEEK) {
+      lines.push('  baseUrl: "https://api.deepseek.com"');
     }
   });
 
