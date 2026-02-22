@@ -50,3 +50,12 @@ export { logModelSlashCommand } from './src/telemetry/loggers.js';
 
 // Provider Configuration Manager
 export { ProviderConfigManager, getProviderConfigManager, type ValidationResult } from './src/config/providerConfigManager.js';
+
+// Skills System
+export { SkillManager, createSkillManager, createSkillService, type SkillService, type SkillListItem } from './src/skills/index.js';
+
+// Plugin System
+export { PluginManager, createPluginManager, createPluginService, type PluginService, type PluginListItem } from './src/plugins/index.js';
+
+// Profile System
+export { ProfileManager, createProfileManager, createProfileService, type ProfileService, type ProfileListItem } from './src/profiles/index.js';
