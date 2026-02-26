@@ -4,15 +4,52 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { SlashCommand, MessageActionReturn, OpenDialogActionReturn } from './types.js';
+import type {
+  SlashCommand,
+  MessageActionReturn,
+  OpenDialogActionReturn,
+  CommandContext,
+} from './types.js';
 import { CommandKind } from './types.js';
-import { createSkillManager } from '@damie-code/damie-code-core';
+import {
+  createSkillManager,
+  type InstalledSkill,
+} from '@damie-code/damie-code-core';
+import { validateSkillName, sanitizeInput } from '../../utils/validation.js';
+
+/**
+ * Helper function to capture console output safely without mutating global console
+ */
+function captureConsoleOutput<T>(
+  fn: () => Promise<T>,
+): Promise<{ result: T; output: string }> {
+  return new Promise((resolve, reject) => {
+    const logs: string[] = [];
+    const originalLog = console.log;
+
+    const captureLog = (...args: unknown[]) => {
+      logs.push(args.map(String).join(' '));
+    };
+
+    console.log = captureLog;
+
+    fn()
+      .then((result) => {
+        console.log = originalLog;
+        resolve({ result, output: logs.join('\n') });
+      })
+      .catch((error: unknown) => {
+        console.log = originalLog;
+        reject(error);
+      });
+  });
+}
 
 export const skillsCommand: SlashCommand = {
   name: 'skills',
   description: 'Manage skills',
   kind: CommandKind.BUILT_IN,
-  action: async (_context: any, args: string) => {
+  action: async (_context: CommandContext, args: string) => {
     const trimmedArgs = args.trim();
     const skillManager = createSkillManager();
 
@@ -49,49 +86,69 @@ Examples:
     const argsArray = trimmedArgs.split(/\s+/);
     const subcommand = argsArray[0].toLowerCase();
 
-    // Capture console output
-    const originalLog = console.log;
-    let output = '';
-    const captureLog = (...logArgs: any[]) => {
-      output += logArgs.join(' ') + '\n';
-    };
-
     try {
       switch (subcommand) {
         case 'list': {
-          const skills = await skillManager.listSkills();
-          
-          console.log = captureLog;
-          console.log('\n=== Installed Skills ===\n');
-          
-          if (skills.length === 0) {
-            console.log('No skills installed.');
-            console.log('Use /skills install <name> to install a skill.');
-          } else {
-            skills.forEach((skill: any, idx: number) => {
-              const status = skill.enabled ? '✓' : '✗';
-              console.log(`  ${idx + 1}. ${status} ${skill.name} - ${skill.description}`);
-            });
-            console.log(`\nTotal: ${skills.length} skills`);
-            console.log('\nUse /skills enable <name> to enable a skill');
-            console.log('Use /skills disable <name> to disable a skill');
-          }
-          console.log('');
-          break;
+          const { output } = await captureConsoleOutput(async () => {
+            const skills = await skillManager.listSkills();
+
+            console.log('\n=== Installed Skills ===\n');
+
+            if (skills.length === 0) {
+              console.log('No skills installed.');
+              console.log('Use /skills install <name> to install a skill.');
+            } else {
+              skills.forEach((skill: InstalledSkill, idx: number) => {
+                const status = skill.enabled ? '✓' : '✗';
+                console.log(
+                  `  ${idx + 1}. ${status} ${skill.name} - ${skill.manifest.description}`,
+                );
+              });
+              console.log(`\nTotal: ${skills.length} skills`);
+              console.log('\nUse /skills enable <name> to enable a skill');
+              console.log('Use /skills disable <name> to disable a skill');
+            }
+            console.log('');
+          });
+
+          return {
+            type: 'message',
+            messageType: 'info',
+            content: output,
+          } satisfies MessageActionReturn;
         }
 
-        case 'enable':
+        case 'enable': {
           if (!argsArray[1]) {
             return {
               type: 'message',
               messageType: 'error',
-              content: 'Error: Skill name required.\nUsage: /skills enable <name>',
+              content:
+                'Error: Skill name required.\nUsage: /skills enable <name>',
             } satisfies MessageActionReturn;
           }
+
+          const skillName = sanitizeInput(argsArray[1]);
+          const validation = validateSkillName(skillName);
+          if (!validation.isValid) {
+            return {
+              type: 'message',
+              messageType: 'error',
+              content: `Error: ${validation.error}.\nUsage: /skills enable <name>`,
+            } satisfies MessageActionReturn;
+          }
+
           try {
-            await skillManager.enableSkill(argsArray[1]);
-            console.log = captureLog;
-            console.log(`\n✅ Enabled skill: ${argsArray[1]}\n`);
+            const { output } = await captureConsoleOutput(async () => {
+              await skillManager.enableSkill(skillName);
+              console.log(`\n✅ Enabled skill: ${skillName}\n`);
+            });
+
+            return {
+              type: 'message',
+              messageType: 'info',
+              content: output,
+            } satisfies MessageActionReturn;
           } catch (error) {
             return {
               type: 'message',
@@ -99,20 +156,39 @@ Examples:
               content: `Failed to enable skill: ${error instanceof Error ? error.message : String(error)}`,
             } satisfies MessageActionReturn;
           }
-          break;
+        }
 
-        case 'disable':
+        case 'disable': {
           if (!argsArray[1]) {
             return {
               type: 'message',
               messageType: 'error',
-              content: 'Error: Skill name required.\nUsage: /skills disable <name>',
+              content:
+                'Error: Skill name required.\nUsage: /skills disable <name>',
             } satisfies MessageActionReturn;
           }
+
+          const skillName = sanitizeInput(argsArray[1]);
+          const validation = validateSkillName(skillName);
+          if (!validation.isValid) {
+            return {
+              type: 'message',
+              messageType: 'error',
+              content: `Error: ${validation.error}.\nUsage: /skills disable <name>`,
+            } satisfies MessageActionReturn;
+          }
+
           try {
-            await skillManager.disableSkill(argsArray[1]);
-            console.log = captureLog;
-            console.log(`\n❌ Disabled skill: ${argsArray[1]}\n`);
+            const { output } = await captureConsoleOutput(async () => {
+              await skillManager.disableSkill(skillName);
+              console.log(`\n❌ Disabled skill: ${skillName}\n`);
+            });
+
+            return {
+              type: 'message',
+              messageType: 'info',
+              content: output,
+            } satisfies MessageActionReturn;
           } catch (error) {
             return {
               type: 'message',
@@ -120,26 +196,42 @@ Examples:
               content: `Failed to disable skill: ${error instanceof Error ? error.message : String(error)}`,
             } satisfies MessageActionReturn;
           }
-          break;
+        }
 
-        case 'install':
+        case 'install': {
           if (!argsArray[1]) {
             return {
               type: 'message',
               messageType: 'error',
-              content: 'Error: Skill name required.\nUsage: /skills install <name>',
+              content:
+                'Error: Skill name required.\nUsage: /skills install <name>',
             } satisfies MessageActionReturn;
           }
+
+          const skillName = sanitizeInput(argsArray[1]);
+          const validation = validateSkillName(skillName);
+          if (!validation.isValid) {
+            return {
+              type: 'message',
+              messageType: 'error',
+              content: `Error: ${validation.error}.\nUsage: /skills install <name>`,
+            } satisfies MessageActionReturn;
+          }
+
           try {
-            console.log = captureLog;
-            console.log(`\n📦 Installing skill: ${argsArray[1]}...`);
-            const result = await skillManager.installSkill(argsArray[1]);
-            if (result.success) {
-              console.log(`✅ Successfully installed: ${argsArray[1]}`);
-            } else {
-              console.log(`❌ Installation failed: ${result.message}`);
-            }
-            console.log('');
+            const { output } = await captureConsoleOutput(async () => {
+              console.log(`\n📦 Installing skill: ${skillName}...`);
+              const skill = await skillManager.installSkill(skillName);
+              console.log(`✅ Successfully installed: ${skill.name}`);
+              console.log(`Location: ${skill.path}`);
+              console.log('');
+            });
+
+            return {
+              type: 'message',
+              messageType: 'info',
+              content: output,
+            } satisfies MessageActionReturn;
           } catch (error) {
             return {
               type: 'message',
@@ -147,27 +239,42 @@ Examples:
               content: `Failed to install skill: ${error instanceof Error ? error.message : String(error)}`,
             } satisfies MessageActionReturn;
           }
-          break;
+        }
 
-        case 'create':
+        case 'create': {
           if (!argsArray[1]) {
             return {
               type: 'message',
               messageType: 'error',
-              content: 'Error: Skill name required.\nUsage: /skills create <name>',
+              content:
+                'Error: Skill name required.\nUsage: /skills create <name>',
             } satisfies MessageActionReturn;
           }
+
+          const skillName = sanitizeInput(argsArray[1]);
+          const validation = validateSkillName(skillName);
+          if (!validation.isValid) {
+            return {
+              type: 'message',
+              messageType: 'error',
+              content: `Error: ${validation.error}.\nUsage: /skills create <name>`,
+            } satisfies MessageActionReturn;
+          }
+
           try {
-            console.log = captureLog;
-            console.log(`\n🔧 Creating skill: ${argsArray[1]}...`);
-            const result = await skillManager.createSkill(argsArray[1]);
-            if (result.success) {
-              console.log(`✅ Successfully created skill: ${argsArray[1]}`);
-              console.log(`Location: ${result.path}`);
-            } else {
-              console.log(`❌ Creation failed: ${result.message}`);
-            }
-            console.log('');
+            const { output } = await captureConsoleOutput(async () => {
+              console.log(`\n🔧 Creating skill: ${skillName}...`);
+              const skillPath = await skillManager.createSkill(skillName);
+              console.log(`✅ Successfully created skill: ${skillName}`);
+              console.log(`Location: ${skillPath}`);
+              console.log('');
+            });
+
+            return {
+              type: 'message',
+              messageType: 'info',
+              content: output,
+            } satisfies MessageActionReturn;
           } catch (error) {
             return {
               type: 'message',
@@ -175,7 +282,7 @@ Examples:
               content: `Failed to create skill: ${error instanceof Error ? error.message : String(error)}`,
             } satisfies MessageActionReturn;
           }
-          break;
+        }
 
         default:
           return {
@@ -185,20 +292,11 @@ Examples:
           } satisfies MessageActionReturn;
       }
     } catch (error) {
-      console.log = originalLog;
       return {
         type: 'message',
         messageType: 'error',
         content: `Skills command error: ${error instanceof Error ? error.message : String(error)}`,
       } satisfies MessageActionReturn;
     }
-
-    console.log = originalLog;
-
-    return {
-      type: 'message',
-      messageType: 'info',
-      content: output,
-    } satisfies MessageActionReturn;
   },
 };

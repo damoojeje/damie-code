@@ -45,6 +45,10 @@ import {
   type InitializationResult,
 } from './core/initializer.js';
 import { validateAuthMethod } from './config/auth.js';
+import {
+  validateConfigBeforeLaunch,
+  offerConfigFix,
+} from './config/configValidator.js';
 import { setMaxSizedBoxDebugging } from './ui/components/shared/MaxSizedBox.js';
 import { SettingsContext } from './ui/contexts/SettingsContext.js';
 import { detectAndEnableKittyProtocol } from './ui/utils/kittyProtocolDetector.js';
@@ -212,8 +216,24 @@ export async function main() {
   if (isFirstRun() && !shouldSkipSetup() && process.stdin.isTTY) {
     const result = await runSetupWizard();
     if (!result.success) {
-      console.error('Setup wizard failed. You can run it again by deleting ~/.damie/config.yaml');
+      console.error(
+        'Setup wizard failed. You can run it again by deleting ~/.damie/config.yaml',
+      );
       process.exit(1);
+    }
+  }
+
+  // Validate configuration before launch (for existing users)
+  if (!isFirstRun() && process.stdin.isTTY) {
+    const validation = await validateConfigBeforeLaunch();
+    if (!validation.valid) {
+      console.warn(`\n⚠️  ${validation.error}\n`);
+      const fixed = await offerConfigFix();
+      if (!fixed) {
+        console.log('Exiting. Please fix the configuration and try again.\n');
+        process.exit(1);
+      }
+      // If fixed, continue to launch
     }
   }
 

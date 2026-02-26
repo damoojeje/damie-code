@@ -82,18 +82,18 @@ export type ContentGeneratorConfig = {
   userAgent?: string;
 };
 
-export function createContentGeneratorConfig(
+export async function createContentGeneratorConfig(
   config: Config,
   authType: AuthType | undefined,
   generationConfig?: Partial<ContentGeneratorConfig>,
-): ContentGeneratorConfig {
+): Promise<ContentGeneratorConfig> {
   const geminiApiKey = process.env['GEMINI_API_KEY'] || undefined;
   const googleApiKey = process.env['GOOGLE_API_KEY'] || undefined;
   const googleCloudProject = process.env['GOOGLE_CLOUD_PROJECT'] || undefined;
   const googleCloudLocation = process.env['GOOGLE_CLOUD_LOCATION'] || undefined;
 
   // Load Damie config file for provider settings
-  const { loadDamieConfig } = require('../config/damieConfigLoader.js');
+  const { loadDamieConfig } = await import('../config/damieConfigLoader.js');
   const damieConfig = loadDamieConfig();
 
   // Damie Code provider API keys from config file or environment
@@ -146,33 +146,25 @@ export function createContentGeneratorConfig(
   // Damie Code providers configuration
   // Priority: config file > generationConfig > environment > defaults
   if (authType === AuthType.USE_DEEPSEEK) {
-    newContentGeneratorConfig.apiKey = 
-      deepseekConfig?.apiKey || 
-      process.env['DEEPSEEK_API_KEY'] || 
-      undefined;
-    newContentGeneratorConfig.baseUrl = 
-      deepseekConfig?.baseUrl || 
-      'https://api.deepseek.com';
-    newContentGeneratorConfig.model = 
-      generationConfig?.model || 
-      deepseekConfig?.model || 
-      'deepseek-chat';
+    newContentGeneratorConfig.apiKey =
+      deepseekConfig?.apiKey || process.env['DEEPSEEK_API_KEY'] || undefined;
+    newContentGeneratorConfig.baseUrl =
+      deepseekConfig?.baseUrl || 'https://api.deepseek.com';
+    newContentGeneratorConfig.model =
+      generationConfig?.model || deepseekConfig?.model || 'deepseek-chat';
     newContentGeneratorConfig.timeout = deepseekConfig?.timeout;
     newContentGeneratorConfig.maxRetries = deepseekConfig?.maxRetries;
     return newContentGeneratorConfig;
   }
 
   if (authType === AuthType.USE_ANTHROPIC) {
-    newContentGeneratorConfig.apiKey = 
-      anthropicConfig?.apiKey || 
-      process.env['ANTHROPIC_API_KEY'] || 
-      undefined;
-    newContentGeneratorConfig.baseUrl = 
-      anthropicConfig?.baseUrl || 
-      'https://api.anthropic.com/v1';
-    newContentGeneratorConfig.model = 
-      generationConfig?.model || 
-      anthropicConfig?.model || 
+    newContentGeneratorConfig.apiKey =
+      anthropicConfig?.apiKey || process.env['ANTHROPIC_API_KEY'] || undefined;
+    newContentGeneratorConfig.baseUrl =
+      anthropicConfig?.baseUrl || 'https://api.anthropic.com/v1';
+    newContentGeneratorConfig.model =
+      generationConfig?.model ||
+      anthropicConfig?.model ||
       'claude-3-5-sonnet-20241022';
     newContentGeneratorConfig.timeout = anthropicConfig?.timeout;
     newContentGeneratorConfig.maxRetries = anthropicConfig?.maxRetries;
@@ -180,16 +172,15 @@ export function createContentGeneratorConfig(
   }
 
   if (authType === AuthType.USE_OPENROUTER) {
-    newContentGeneratorConfig.apiKey = 
-      openrouterConfig?.apiKey || 
-      process.env['OPENROUTER_API_KEY'] || 
+    newContentGeneratorConfig.apiKey =
+      openrouterConfig?.apiKey ||
+      process.env['OPENROUTER_API_KEY'] ||
       undefined;
-    newContentGeneratorConfig.baseUrl = 
-      openrouterConfig?.baseUrl || 
-      'https://openrouter.ai/api/v1';
-    newContentGeneratorConfig.model = 
-      generationConfig?.model || 
-      openrouterConfig?.model || 
+    newContentGeneratorConfig.baseUrl =
+      openrouterConfig?.baseUrl || 'https://openrouter.ai/api/v1';
+    newContentGeneratorConfig.model =
+      generationConfig?.model ||
+      openrouterConfig?.model ||
       'anthropic/claude-3-5-sonnet';
     newContentGeneratorConfig.timeout = openrouterConfig?.timeout;
     newContentGeneratorConfig.maxRetries = openrouterConfig?.maxRetries;
@@ -197,14 +188,12 @@ export function createContentGeneratorConfig(
   }
 
   if (authType === AuthType.USE_OLLAMA) {
-    newContentGeneratorConfig.baseUrl = 
-      ollamaConfig?.baseUrl || 
-      generationConfig?.baseUrl || 
+    newContentGeneratorConfig.baseUrl =
+      ollamaConfig?.baseUrl ||
+      generationConfig?.baseUrl ||
       'http://localhost:11434/v1';
-    newContentGeneratorConfig.model = 
-      generationConfig?.model || 
-      ollamaConfig?.model || 
-      'codellama';
+    newContentGeneratorConfig.model =
+      generationConfig?.model || ollamaConfig?.model || 'codellama';
     newContentGeneratorConfig.timeout = ollamaConfig?.timeout;
     newContentGeneratorConfig.maxRetries = ollamaConfig?.maxRetries;
     // Ollama doesn't require API key
@@ -311,16 +300,16 @@ export async function createContentGenerator(
     if (!config.apiKey && config.authType !== AuthType.USE_OLLAMA) {
       const providerName = getProviderNameForAuthType(config.authType);
       const envVar = getProviderEnvVar(config.authType);
-      
+
       throw new Error(
         `API key required for ${providerName}.\n\n` +
-        `To fix this, either:\n` +
-        `1. Set environment variable: export ${envVar}="your-api-key"\n` +
-        `2. Or add to ~/.damie/config.yaml:\n` +
-        `   providers:\n` +
-        `     ${providerName.toLowerCase()}:\n` +
-        `       apiKey: "your-api-key"\n\n` +
-        `Get API key from: ${getProviderDocsUrl(config.authType)}`
+          `To fix this, either:\n` +
+          `1. Set environment variable: export ${envVar}="your-api-key"\n` +
+          `2. Or add to ~/.damie/config.yaml:\n` +
+          `   providers:\n` +
+          `     ${providerName.toLowerCase()}:\n` +
+          `       apiKey: "your-api-key"\n\n` +
+          `Get API key from: ${getProviderDocsUrl(config.authType)}`,
       );
     }
 

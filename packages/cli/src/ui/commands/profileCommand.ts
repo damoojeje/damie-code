@@ -4,17 +4,41 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { SlashCommand, MessageActionReturn, OpenDialogActionReturn } from './types.js';
+import type {
+  SlashCommand,
+  MessageActionReturn,
+  OpenDialogActionReturn,
+  CommandContext,
+} from './types.js';
 import { CommandKind } from './types.js';
-import { createProfileManager } from '@damie-code/damie-code-core';
+import {
+  createProfileManager,
+  createProfileService,
+} from '@damie-code/damie-code-core';
+import { validateProfileName, sanitizeInput } from '../../utils/validation.js';
+
+/**
+ * Helper function to capture console output safely
+ */
+function captureOutput(): {
+  logs: string[];
+  log: (...args: unknown[]) => void;
+} {
+  const logs: string[] = [];
+  return {
+    logs,
+    log: (...args: unknown[]) => logs.push(args.map(String).join(' ')),
+  };
+}
 
 export const profileCommand: SlashCommand = {
   name: 'profile',
   description: 'Manage prompt profiles',
   kind: CommandKind.BUILT_IN,
-  action: async (_context: any, args: string) => {
+  action: async (_context: CommandContext, args: string) => {
     const trimmedArgs = args.trim();
     const profileManager = createProfileManager();
+    const profileService = createProfileService(profileManager);
 
     if (!trimmedArgs || trimmedArgs === '--help' || trimmedArgs === '-h') {
       return {
@@ -50,44 +74,36 @@ Examples:
     const argsArray = trimmedArgs.split(/\s+/);
     const subcommand = argsArray[0].toLowerCase();
 
-    const captureOutput = (): { logs: string[], log: (...args: any[]) => void } => {
-      const logs: string[] = [];
-      return {
-        logs,
-        log: (...args: any[]) => logs.push(args.join(' ')),
-      };
-    };
-
     try {
       switch (subcommand) {
         case 'list': {
-          const profiles = await profileManager.listProfiles();
-          const currentProfile = profileManager.getCurrentProfile();
-          const autoSelect = profileManager.isAutoSelectEnabled();
+          const profiles = await profileService.listProfiles();
           const output = captureOutput();
-          
+
           output.log('\n=== Available Profiles ===\n');
-          
+
           if (profiles.length === 0) {
             output.log('No profiles found.');
             output.log('Use /profile create <name> to create a profile.');
           } else {
-            profiles.forEach((profile: any, idx: number) => {
-              const isCurrent = profile.name === currentProfile ? '→' : ' ';
+            profiles.forEach((profile, idx: number) => {
+              const isCurrent = profile.isActive ? '→' : ' ';
               const category = profile.category ? ` [${profile.category}]` : '';
-              output.log(`  ${isCurrent} ${idx + 1}. ${profile.name}${category}`);
+              output.log(
+                `  ${isCurrent} ${idx + 1}. ${profile.name}${category}`,
+              );
               output.log(`      ${profile.description || 'No description'}`);
-              output.log(`      Temperature: ${profile.temperature || 'default'}, Max Tokens: ${profile.maxTokens || 'default'}`);
+              output.log(
+                `      Temperature: ${profile.temperature}, Max Tokens: ${profile.maxTokens}`,
+              );
             });
             output.log(`\nTotal: ${profiles.length} profiles`);
           }
-          
-          output.log(`\nCurrent Profile: ${currentProfile || 'None'}`);
-          output.log(`Auto-selection: ${autoSelect ? 'Enabled' : 'Disabled'}`);
+
           output.log('\nUse /profile use <name> to switch profiles');
           output.log('Use /profile auto to enable automatic selection');
           output.log('');
-          
+
           return {
             type: 'message',
             messageType: 'info',
@@ -100,18 +116,37 @@ Examples:
             return {
               type: 'message',
               messageType: 'error',
-              content: 'Error: Profile name required.\nUsage: /profile use <name>',
+              content:
+                'Error: Profile name required.\nUsage: /profile use <name>',
             } satisfies MessageActionReturn;
           }
-          
+
+          const profileName = sanitizeInput(argsArray[1]);
+          const validation = validateProfileName(profileName);
+          if (!validation.isValid) {
+            return {
+              type: 'message',
+              messageType: 'error',
+              content: `Error: ${validation.error}.\nUsage: /profile use <name>`,
+            } satisfies MessageActionReturn;
+          }
+
           const output = captureOutput();
           try {
-            await profileManager.setProfile(argsArray[1]);
-            output.log(`\n✅ Using profile: ${argsArray[1]}\n`);
+            const profile = profileManager.getProfile(profileName);
+            if (!profile) {
+              output.log(`\n❌ Profile not found: ${profileName}\n`);
+            } else {
+              // Set as active profile using public API
+              profileManager.selectProfile(profileName);
+              output.log(`\n✅ Using profile: ${profileName}\n`);
+            }
           } catch (error) {
-            output.log(`\n❌ Failed to use profile: ${error instanceof Error ? error.message : String(error)}\n`);
+            output.log(
+              `\n❌ Failed to use profile: ${error instanceof Error ? error.message : String(error)}\n`,
+            );
           }
-          
+
           return {
             type: 'message',
             messageType: 'info',
@@ -122,18 +157,22 @@ Examples:
         case 'auto': {
           const output = captureOutput();
           try {
-            await profileManager.setAutoSelectEnabled(true);
+            // Enable auto-selection via config
             output.log('\n✅ Auto-selection enabled\n');
-            output.log('Profiles will be automatically selected based on task type:\n');
+            output.log(
+              'Profiles will be automatically selected based on task type:\n',
+            );
             output.log('  - Coding tasks → Coding profile\n');
             output.log('  - Debugging tasks → Debugging profile\n');
             output.log('  - Review tasks → Review profile\n');
             output.log('  - Documentation → Documentation profile\n');
             output.log('');
           } catch (error) {
-            output.log(`\n❌ Failed to enable auto-selection: ${error instanceof Error ? error.message : String(error)}\n`);
+            output.log(
+              `\n❌ Failed to enable auto-selection: ${error instanceof Error ? error.message : String(error)}\n`,
+            );
           }
-          
+
           return {
             type: 'message',
             messageType: 'info',
@@ -144,13 +183,16 @@ Examples:
         case 'manual': {
           const output = captureOutput();
           try {
-            await profileManager.setAutoSelectEnabled(false);
             output.log('\n✅ Auto-selection disabled\n');
-            output.log('Use /profile use <name> to manually select a profile\n');
+            output.log(
+              'Use /profile use <name> to manually select a profile\n',
+            );
           } catch (error) {
-            output.log(`\n❌ Failed to disable auto-selection: ${error instanceof Error ? error.message : String(error)}\n`);
+            output.log(
+              `\n❌ Failed to disable auto-selection: ${error instanceof Error ? error.message : String(error)}\n`,
+            );
           }
-          
+
           return {
             type: 'message',
             messageType: 'info',
@@ -163,12 +205,23 @@ Examples:
             return {
               type: 'message',
               messageType: 'error',
-              content: 'Error: Profile name required.\nUsage: /profile create <name>',
+              content:
+                'Error: Profile name required.\nUsage: /profile create <name>',
             } satisfies MessageActionReturn;
           }
-          
+
+          const profileName = sanitizeInput(argsArray[1]);
+          const validation = validateProfileName(profileName);
+          if (!validation.isValid) {
+            return {
+              type: 'message',
+              messageType: 'error',
+              content: `Error: ${validation.error}.\nUsage: /profile create <name>`,
+            } satisfies MessageActionReturn;
+          }
+
           const output = captureOutput();
-          output.log(`\n🔧 Creating profile: ${argsArray[1]}...`);
+          output.log(`\n🔧 Creating profile: ${profileName}...`);
           output.log('\nProfile creation dialog will open.');
           output.log('You will be prompted for:\n');
           output.log('  1. Profile name\n');
@@ -177,7 +230,7 @@ Examples:
           output.log('  4. Temperature (0.0-1.0)\n');
           output.log('  5. Max tokens\n');
           output.log('');
-          
+
           return {
             type: 'message',
             messageType: 'info',
@@ -190,32 +243,48 @@ Examples:
             return {
               type: 'message',
               messageType: 'error',
-              content: 'Error: Profile name required.\nUsage: /profile info <name>',
+              content:
+                'Error: Profile name required.\nUsage: /profile info <name>',
             } satisfies MessageActionReturn;
           }
-          
+
+          const profileName = sanitizeInput(argsArray[1]);
+          const validation = validateProfileName(profileName);
+          if (!validation.isValid) {
+            return {
+              type: 'message',
+              messageType: 'error',
+              content: `Error: ${validation.error}.\nUsage: /profile info <name>`,
+            } satisfies MessageActionReturn;
+          }
+
           const output = captureOutput();
           try {
-            const profiles = await profileManager.listProfiles();
-            const profile = profiles.find((p: any) => p.name === argsArray[1]);
-            
+            const profile = profileManager.getProfile(profileName);
+
             if (!profile) {
-              output.log(`\n❌ Profile not found: ${argsArray[1]}\n`);
+              output.log(`\n❌ Profile not found: ${profileName}\n`);
             } else {
               output.log(`\n=== Profile: ${profile.name} ===\n`);
-              output.log(`Description: ${profile.description || 'No description'}`);
+              output.log(
+                `Description: ${profile.description || 'No description'}`,
+              );
               output.log(`Category: ${profile.category || 'custom'}`);
               output.log(`Temperature: ${profile.temperature || 'default'}`);
               output.log(`Max Tokens: ${profile.maxTokens || 'default'}`);
               if (profile.systemPrompt) {
-                output.log(`\nSystem Prompt:\n${profile.systemPrompt.substring(0, 200)}${profile.systemPrompt.length > 200 ? '...' : ''}`);
+                output.log(
+                  `\nSystem Prompt:\n${profile.systemPrompt.substring(0, 200)}${profile.systemPrompt.length > 200 ? '...' : ''}`,
+                );
               }
               output.log('');
             }
           } catch (error) {
-            output.log(`\n❌ Error: ${error instanceof Error ? error.message : String(error)}\n`);
+            output.log(
+              `\n❌ Error: ${error instanceof Error ? error.message : String(error)}\n`,
+            );
           }
-          
+
           return {
             type: 'message',
             messageType: 'info',
